@@ -90,6 +90,7 @@ void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int 
         palette8[index]  = RGBVAL8(r,g,b);
         palette16[index]  = RGBVAL16(r,g,b);        
     }
+    printf("index: %d palette[8]: %d, r %d, g %d, b %d\n", index, palette8[index], r, g, b);
 }
 
 void emu_DrawVsync(void)
@@ -99,7 +100,7 @@ void emu_DrawVsync(void)
     volatile bool vb=vbl; 
     while (vbl==vb) {};
 #ifdef USE_VGA   
-   tft.waitSync();                   
+   // tft.waitSync();                   
 #else                      
 //    volatile bool vb=vbl; 
 //    while (vbl==vb) {};

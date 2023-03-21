@@ -13,10 +13,9 @@ void select_pen_colour(uint8_t value);
 void rom_and_screen_mgmt(uint8_t value);
 
 #define PEN_NUMBER 17  // Mode 0 has 16 pens, mode 1 has 4 pens and mode 2 has 2 pens.
-#define VGA_RGB(r,g,b)   ( (((r>>5)&0x07)<<5) | (((g>>5)&0x07)<<2) | (((b>>6)&0x3)<<0) )
 
 struct RGB {
-    uint8_t R, G, B;
+    int R, G, B;
 };
 
 struct GAConfig {
@@ -30,6 +29,7 @@ struct GAConfig {
     bool hsync_active = false;
     bool vsync_active = false;
     uint8_t ram_banking = 0; // unused in CPC 464
+    bool wait_signal = false;
 };
 
 extern struct RGB firmware_palette[27];
