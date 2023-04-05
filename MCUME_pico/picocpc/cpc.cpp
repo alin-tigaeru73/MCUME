@@ -92,17 +92,7 @@ void write_z80(uint16_t Addr, uint8_t Value)
 void out_z80(uint16_t Port, uint8_t Value)
 {
     if(!(Port & 0x8000)) write_gate_array(Value);           // The Gate Array is selected when bit 15 is set to 0.
-    if(!(Port & 0x4000)) write_crt_controller(Port, Value); // The CRTC is selected when bit 14 is set to 0. 
-    // if(!(Port & 0x2000)) 
-    // {
-    //     // upper rom bank number. ROM banking needs to be done regardless of CPC model
-    //     // The Upper ROM Bank Number (in range of 0x00..0xFF) to be mapped to memory at 0xC000..0xFFFF
-
-    //     // byte req_bank_number = Value & 15;
-    //     // if(ga_config.upper_rom_enable)
-    //     // {
-    //     // }
-    // }                        
+    if(!(Port & 0x4000)) write_crt_controller(Port, Value); // The CRTC is selected when bit 14 is set to 0.                      
 }
 
 uint8_t in_z80(uint16_t Port)
@@ -127,12 +117,8 @@ void cpc_Init(void)
 
     pins = z80_init(&CPU);
     memset(RAM, 0, sizeof(RAM));
-    //vsync_wait = true;
 }
 
-/**
- * Starts the emulator by setting the initial program counter and emulates initial hardware state.
-*/
 void cpc_Start(char* filename)
 {
 
@@ -143,8 +129,6 @@ void cpc_Start(char* filename)
 */
 void cpc_Step(void)
 {
-    // if not (z80 wait and ga wait) then tick, otherwise stall.
-    // or rather the tick will be a stall if both waits are asserted, i think that's better.
     bool interrupt_acknowledged = false;
     pins = z80_tick(&CPU, pins);
 
@@ -189,24 +173,16 @@ void cpc_Step(void)
     interrupt_generated = ga_step();
     if(ga_config.wait_signal)
     {
-        // printf("Waiting in the next cycle.\n");
         pins = pins | Z80_WAIT;
     }
     else
     {
-        // printf("Not waiting in the next cycle.\n");
         pins = pins & ~Z80_WAIT;
     }
 
     if(interrupt_generated)
     {
-        // To request an interrupt, or inject a wait state just set the respective pin
-        // (Z80_INT, Z80_NMI, Z80_WAIT), don't forget to clear the pin again later (the
-        // details on when those pins are set and cleared depend heavily on the
-        // emulated system).
-
         // request an interrupt from the CPU
-        // TODO how to set the Z80_INT pin?
         pins = pins | Z80_INT;
     }
 
