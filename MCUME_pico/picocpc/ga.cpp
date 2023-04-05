@@ -105,7 +105,7 @@ bool update_interrupts()
     
     if(ga_config.vsync_delay_count == 2)
     {
-        interrupt_generated = ga_config.interrupt_counter >= 32;
+        interrupt_generated = ga_config.interrupt_counter < 32;
         ga_config.interrupt_counter = 0;
     }
 
@@ -119,12 +119,6 @@ void address_to_pixels()
         vsync_wait = false;
         // return;
     }
-
-    // this gets rid of the horizontal scrolling, but "locomotive software ltd" doesnt show up.
-    // if(is_hsync_active() || is_vsync_active())
-    // {
-    //     return;
-    // }
 
     if(!is_within_display())
     {
