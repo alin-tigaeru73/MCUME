@@ -64,7 +64,7 @@ extern void emu_FileClose(int handler);
 extern unsigned int emu_FileSize(const char* filepath);
 extern unsigned int emu_LoadFile(const char* filepath, void* buf, int size);
 
-extern void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int index);
+extern void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int index);f
 extern void emu_DrawPixel(unsigned char * VBuf, int x, int y);
 extern void emu_DrawScreen(unsigned char* VBuf, int width, int height, int stride);
 extern void emu_DrawLine(unsigned char* VBuf, int width, int height, int line);
