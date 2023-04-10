@@ -117,7 +117,6 @@ void address_to_pixels()
     if(!ga_config.vsync_active && is_vsync_active())
     {
         vsync_wait = false;
-        // return;
     }
 
     if(!is_within_display())

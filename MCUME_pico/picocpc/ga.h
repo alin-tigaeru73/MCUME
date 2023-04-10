@@ -28,7 +28,6 @@ struct GAConfig {
     uint8_t vsync_delay_count = 0;
     bool hsync_active = false;
     bool vsync_active = false;
-    uint8_t ram_banking = 0; // unused in CPC 464
     bool wait_signal = false;
 };
 

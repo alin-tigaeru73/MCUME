@@ -69,17 +69,14 @@ char read_z80(uint16_t Addr)
 {
     if(Addr <= LOWER_ROM_END && ga_config.lower_rom_enable)
     {
-        // printf("At program counter %x, Z80 read from address %x in OS ROM\n", CPU.PC.W, Addr);
         return gb_rom_464_0[Addr];
     }
     else if(Addr >= UPPER_ROM_BEGIN && ga_config.upper_rom_enable)
     {
-        // printf("At program counter %x, Z80 read from address %x in BASIC ROM\n", CPU.PC.W, Addr);
         return gb_rom_464_1[Addr - 0xC000];
     }
     else
     {
-        // printf("At program counter %x, Z80 read from address %x in RAM\n", CPU.PC.W, Addr);
         return RAM[Addr];
     }
 }
