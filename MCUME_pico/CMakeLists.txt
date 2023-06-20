@@ -113,11 +113,11 @@ set(PICOCOLEM_SOURCES
 	)
 
 set(PICOCPC_SOURCES
-		# picocpc/processor/Z80.c
-		# picocpc/cpc.cpp
-		# picocpc/emuapi.cpp
-		# picocpc/picocpc.cpp
-		picocpc/vga-test.cpp
+		picocpc/cpc.cpp
+		picocpc/emuapi.cpp
+		picocpc/picocpc.cpp
+		picocpc/crtc.cpp
+		picocpc/ga.cpp
 )
 
 set(PICOO2EM_SOURCES 
