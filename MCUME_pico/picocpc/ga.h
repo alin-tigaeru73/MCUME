@@ -20,7 +20,7 @@ struct RGB {
 
 struct GAConfig {
     uint8_t pen_selected = 0;
-    uint8_t pen_colours[PEN_NUMBER];
+    uint8_t pen_colours[PEN_NUMBER]{};
     uint8_t screen_mode = 1; // 0 -> 160x200 16c; 1 -> 320x200 4c; 2 -> 640x200 2c; 3 (undocumented) -> 160x200 4c.
     bool upper_rom_enable = true;
     bool lower_rom_enable = true;

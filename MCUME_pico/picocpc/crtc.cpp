@@ -1,26 +1,25 @@
 #include "pico.h"
-#include "pico/stdlib.h"
-#include <stdio.h>
+#include <cstdio>
 
 #include "crtc.h"
 
 int registers[16] = {
-    63,                 // horizontal_total
-    40,                 // horitzontal_displayed
-    46,                 // horizontal_sync_position
-    142,                // horizontal_and_vertical_sync_widths -> VVVVHHHH, so bits 0-3 correspond to hsync width, 4-7 to vsync.
-    38,                 // vertical_total
-    0,                  // vertical_total_adjust
-    25,                 // vertical_displayed
-    30,                 // vertical_sync_position
-    0,                  // interlace_and_skew
-    7,                  // max_raster_address
-    0,                  // cursor_start_raster
-    0,                  // cursor_end_raster
-    48,                 // display_start_addr_high
-    0,                  // display_start_addr_low
-    0,                  // cursor_addr_high
-    0                   // cursor_addr_low
+    63,    // horizontal_total
+    40,    // horizontal_displayed
+    46,    // horizontal_sync_position
+    142,   // horizontal_and_vertical_sync_widths -> VVVVHHHH, so bits 0-3 correspond to hsync width, 4-7 to vsync.
+    38,    // vertical_total
+    0,     // vertical_total_adjust
+    25,    // vertical_displayed
+    30,    // vertical_sync_position
+    0,     // interlace_and_skew
+    7,     // max_raster_address
+    0,    // cursor_start_raster
+    0,    // cursor_end_raster
+    48,   // display_start_addr_high
+    0,    // display_start_addr_low
+    0,    // cursor_addr_high
+    0     // cursor_addr_low
 };
 
 uint8_t selected_register = 0;
@@ -30,7 +29,6 @@ uint8_t scanline_count = 0;
 uint8_t vertical_adjust_count = 0;
 uint16_t memory_start_addr = 0;
 uint8_t microsec_count_crtc = 0;
-
 
 void crtc_step()
 {

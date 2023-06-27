@@ -1,47 +1,31 @@
-#include "pico.h"
-#include "pico/stdlib.h"
-#include <stdio.h>
-
-#include "cpc.h"
-
+#ifndef CHIPS_IMPL
+  #define CHIPS_IMPL
+#endif
 #include <cstring>
-#include <stdlib.h>
-
+#include "z80.h"
+#include "cpc.h"
+#include "crtc.h"
+#include "ga.h"
+#include "roms/rom464.h"
 extern "C" {
 #include "emuapi.h"
 #include "platform_config.h"
 }
-#ifndef CHIPS_IMPL
- #define CHIPS_IMPL
-#endif
-#include "z80.h"
-#include "crtc.h"
-#include "ga.h"
-#include "roms/rom464.h"
-
 #define WIDTH            320 
 #define HEIGHT           200 
-#define NBLINES          312
 #define LOWER_ROM_END   0x4000
 #define UPPER_ROM_BEGIN 0xC000
 
-// Declarations of instances of the RAM, VRAM, processor and other required components.
-
-uint8_t RAM[0x10000];         // 64k
-unsigned char* bitstream = 0; // 16k video ram to be used by PIO.
+uint8_t RAM[0x10000];               // 64k
+unsigned char* bitstream = nullptr; // 16k video ram to be used by PIO.
 static z80_t CPU;
 uint64_t pins;
 bool interrupt_generated = false;
 int position = 0;
-int width_count = 0;
 int x, y = 0;
-
-// Helper functions
 
 void write_to_bitstream(char pixel)
 {
-    // this populates the bitstream.
-
     x = position % WIDTH;
     y = position / WIDTH;
 
@@ -65,64 +49,59 @@ static void display_screen()
     emu_DrawVsync();
 }
 
-char read_z80(uint16_t Addr)
+char read_z80(uint16_t addr)
 {
-    if(Addr <= LOWER_ROM_END && ga_config.lower_rom_enable)
+    if(addr <= LOWER_ROM_END && ga_config.lower_rom_enable)
     {
-        return gb_rom_464_0[Addr];
+        return gb_rom_464_0[addr];
     }
-    else if(Addr >= UPPER_ROM_BEGIN && ga_config.upper_rom_enable)
+    else if(addr >= UPPER_ROM_BEGIN && ga_config.upper_rom_enable)
     {
-        return gb_rom_464_1[Addr - 0xC000];
+        return gb_rom_464_1[addr - 0xC000];
     }
     else
     {
-        return RAM[Addr];
+        return RAM[addr];
     }
 }
 
-void write_z80(uint16_t Addr, uint8_t Value)
+void write_z80(uint16_t addr, uint8_t value)
 {
-    RAM[Addr] = Value;
+    RAM[addr] = value;
 }
 
-void out_z80(uint16_t Port, uint8_t Value)
+void out_z80(uint16_t port, uint8_t Value)
 {
-    if(!(Port & 0x8000)) write_gate_array(Value);           // The Gate Array is selected when bit 15 is set to 0.
-    if(!(Port & 0x4000)) write_crt_controller(Port, Value); // The CRTC is selected when bit 14 is set to 0.                      
+    if(!(port & 0x8000)) write_gate_array(Value);           // The Gate Array is selected when bit 15 is set to 0.
+    if(!(port & 0x4000)) write_crt_controller(port, Value); // The CRTC is selected when bit 14 is set to 0.
 }
 
-uint8_t in_z80(uint16_t Port)
+uint8_t in_z80(uint16_t port)
 {
-    if(!(Port & 0x4000)) return read_crt_controller(Port); // The CRTC is selected when bit 14 is set to 0. 
+    if(!(port & 0x4000)) return read_crt_controller(port); // The CRTC is selected when bit 14 is set to 0.
     return 0xFF;
 }
 
 /**
- * Creates initial emulation state (i.e. sets up color palette, clears memory etc.)
+ * Creates initial emulation state (i.e. sets up color palette, clears RAM, initialises CPU)
 */
 void cpc_Init(void)
 {
-    for(int i = 0; i < 32; i++)
+    for(unsigned char hardware_colour : hardware_colours)
     {
-        emu_SetPaletteEntry(firmware_palette[hardware_colours[i]].R, 
-                            firmware_palette[hardware_colours[i]].G, 
-                            firmware_palette[hardware_colours[i]].B, 
-                            hardware_colours[i]);
+        emu_SetPaletteEntry(firmware_palette[hardware_colour].R,
+                            firmware_palette[hardware_colour].G,
+                            firmware_palette[hardware_colour].B,
+                            hardware_colour);
     }
-    if (bitstream == 0) bitstream = (unsigned char *)emu_Malloc(WIDTH*HEIGHT);
+    if (bitstream == nullptr) bitstream = (unsigned char *)emu_Malloc(WIDTH*HEIGHT);
 
     pins = z80_init(&CPU);
     memset(RAM, 0, sizeof(RAM));
 }
 
-void cpc_Start(char* filename)
-{
-
-}
-
 /**
- * Steps through emulation and renders the screen.
+ * Steps through emulation
 */
 void cpc_Step(void)
 {
@@ -197,6 +176,11 @@ void cpc_Step(void)
 }
 
 void cpc_Input(int bClick)
+{
+
+}
+
+void cpc_Start(char* filename)
 {
 
 }

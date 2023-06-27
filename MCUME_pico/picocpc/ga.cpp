@@ -1,8 +1,6 @@
 #include "pico.h"
-#include "pico/stdlib.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
 #include "ga.h"
 #include "crtc.h"
 #include "cpc.h"
@@ -161,7 +159,7 @@ void address_to_pixels()
                 uint8_t pixel;
                 for (int color = 0; color < 8; color++)
                 {
-                    pixel = (encodedByte >> 7 - color) & 1;
+                    pixel = (encodedByte >> (7 - color)) & 1;
                     write_to_bitstream(ga_config.pen_colours[pixel]);
                 }
                 break;
