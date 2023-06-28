@@ -118,7 +118,7 @@ set(PICOCPC_SOURCES
 		picocpc/picocpc.cpp
 		picocpc/crtc.cpp
 		picocpc/ga.cpp
-)
+        picocpc/Processor.cpp picocpc/Processor.h)
 
 set(PICOO2EM_SOURCES 
 		picoo2em/audio.c 
