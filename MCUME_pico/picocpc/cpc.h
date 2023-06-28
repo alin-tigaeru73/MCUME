@@ -1,5 +1,5 @@
-#ifndef CPC_H_
-#define CPC_H_
+#ifndef CPC_H
+#define CPC_H
 
 #ifndef PICO_H_
 #include "pico.h"

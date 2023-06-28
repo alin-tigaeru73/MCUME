@@ -1,5 +1,5 @@
-#ifndef GA_H_
-#define GA_H_
+#ifndef GA_H
+#define GA_H
 
 #ifndef PICO_H_
 #include "pico.h"

@@ -1,5 +1,5 @@
-#ifndef CRTC_H_
-#define CRTC_H_
+#ifndef CRTC_H
+#define CRTC_H
 
 #ifndef PICO_H_
 #include "pico.h"
