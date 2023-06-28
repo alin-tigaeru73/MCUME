@@ -1,3 +1,0 @@
-C:/Users/alint/Desktop/eu/uni/_year4/Dizertatie/MCUME/MCUME_pico/build/pioasm/CMakeFiles/pioasm.dir
-C:/Users/alint/Desktop/eu/uni/_year4/Dizertatie/MCUME/MCUME_pico/build/pioasm/CMakeFiles/edit_cache.dir
-C:/Users/alint/Desktop/eu/uni/_year4/Dizertatie/MCUME/MCUME_pico/build/pioasm/CMakeFiles/rebuild_cache.dir

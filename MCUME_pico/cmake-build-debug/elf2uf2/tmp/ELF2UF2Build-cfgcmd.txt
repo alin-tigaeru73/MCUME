@@ -1,1 +1,0 @@
-cmd='C:/Program Files/JetBrains/CLion 2022.2.3/bin/cmake/win/bin/cmake.exe;-GNinja;<SOURCE_DIR><SOURCE_SUBDIR>'
