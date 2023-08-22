@@ -4,15 +4,15 @@
 #include <cstring>
 #include "z80.h"
 #include "cpc.h"
-#include "crtc.h"
-#include "ga.h"
+#include "CRTC.h"
+#include "GA.h"
 #include "roms/rom464.h"
 extern "C" {
 #include "emuapi.h"
 #include "platform_config.h"
 }
-#define WIDTH            320 
-#define HEIGHT           200 
+#define WIDTH           320
+#define HEIGHT          200
 #define LOWER_ROM_END   0x4000
 #define UPPER_ROM_BEGIN 0xC000
 

@@ -22,7 +22,6 @@ include_directories(picovga_t4)
 include_directories(tft_t)
 include_directories(psram)
 
-
 set(PICO81_SOURCES 
 		pico81/Z80.c 
 		pico81/AY8910.c
@@ -116,9 +115,12 @@ set(PICOCPC_SOURCES
 		picocpc/cpc.cpp
 		picocpc/emuapi.cpp
 		picocpc/picocpc.cpp
-		picocpc/crtc.cpp
-		picocpc/ga.cpp
-        picocpc/Processor.cpp picocpc/Processor.h)
+        picocpc/CRTC.cpp
+		picocpc/GA.cpp
+        picocpc/Processor.cpp
+#		picocpc/vga-test.cpp
+		picocpc/Bus.cpp
+		picocpc/Memory.cpp picocpc/Display.cpp picocpc/Display.h)
 
 set(PICOO2EM_SOURCES 
 		picoo2em/audio.c 
@@ -314,7 +316,7 @@ set(TESTPSRAM_SOURCES
 	)
 
 # Vic20,ZX81,ZX Spectrum,Colem
-add_compile_definitions(OVERRULE_WIDTH=320 OVERRULE_HEIGHT=192)
+#add_compile_definitions(OVERRULE_WIDTH=320 OVERRULE_HEIGHT=192)
 
 add_executable(mcume
 #		${GFXENGINE_SOURCES}
@@ -339,6 +341,7 @@ add_executable(mcume
 #		${PSRAM_SOURCES}
 #		${VGA_T4_SOURCES}
         ${PICOVGA_T4_SOURCES}
+#		${PICO_SCANVIDEO_SOURCES}
 #       ${TFT_T_SOURCES}
 	)
 
@@ -347,10 +350,11 @@ add_executable(mcume
 pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4/picovga.pio)
 
 
+
 target_link_libraries(mcume pico_multicore
 	    pico_stdlib
 	    FatFs_SPI
-	    # pico_scanvideo_dpi
+#	     pico_scanvideo_dpi
 	    hardware_adc
 	    hardware_pio
         hardware_pwm	    

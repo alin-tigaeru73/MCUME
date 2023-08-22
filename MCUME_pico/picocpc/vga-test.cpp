@@ -2,9 +2,8 @@
 #include "pico/stdlib.h"
 
 #include "vga_t_dma.h"
+#include "scanvideo_base.h"
 
-#include <iostream>
-#include <stdio.h>
 #include <string>
 #include <cstring>
 
@@ -26,6 +25,7 @@ static char * digits = "0123456789";
 int main(void) {
     set_sys_clock_khz(230000, true);
     stdio_init_all();
+
 
     vga.begin(VGA_MODE_320x240);
     vga.clear(LIGHT_BLUE);
