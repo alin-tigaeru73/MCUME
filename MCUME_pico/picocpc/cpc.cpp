@@ -22,14 +22,12 @@ void cpc_Init(void)
 {
     for(unsigned char hardware_colour : Display::hardware_colours)
     {
-        emu_SetPaletteEntry(Display::firmware_palette[hardware_colour].R,
-                            Display::firmware_palette[hardware_colour].G,
-                            Display::firmware_palette[hardware_colour].B,
+        emu_SetPaletteEntry(R16(Display::firmware_palette[hardware_colour].R),
+                            G16(Display::firmware_palette[hardware_colour].G),
+                            B16(Display::firmware_palette[hardware_colour].B),
                             hardware_colour);
     }
-    emu_printf("Initialising the bus...");
     bus = new Bus();
-    emu_printf("Bus initialised!");
 }
 
 /**

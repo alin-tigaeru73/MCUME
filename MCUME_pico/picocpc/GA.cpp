@@ -39,6 +39,11 @@ bool GateArray::updateInterrupts()
 
 void GateArray::generatePixelData()
 {
+    if(!_currentHSync && _bus->isHSyncActive())
+    {
+        _bus->setHSyncWait(false);
+    }
+
     if(!_currentVSync && _bus->isVSyncActive())
     {
         _bus->setVSyncWait(false);
@@ -67,8 +72,6 @@ void GateArray::generatePixelData()
                          (encodedByte & 0x01) << 3;
                 _bus->draw(_penColours[pixel0]);
                 _bus->draw(_penColours[pixel1]);
-//                write_to_bitstream(ga_config.pen_colours[pixel0]);
-//                write_to_bitstream(ga_config.pen_colours[pixel1]);
                 break;
             case 1:
                 pixel0 = (encodedByte & 0x80) >> 7 |
@@ -83,10 +86,6 @@ void GateArray::generatePixelData()
                 _bus->draw(_penColours[pixel1]);
                 _bus->draw(_penColours[pixel2]);
                 _bus->draw(_penColours[pixel3]);
-//                write_to_bitstream(ga_config.pen_colours[pixel0]);
-//                write_to_bitstream(ga_config.pen_colours[pixel1]);
-//                write_to_bitstream(ga_config.pen_colours[pixel2]);
-//                write_to_bitstream(ga_config.pen_colours[pixel3]);
                 break;
             case 2:
                 uint8_t pixel;
@@ -94,7 +93,6 @@ void GateArray::generatePixelData()
                 {
                     pixel = (encodedByte >> (7 - color)) & 1;
                     _bus->draw(_penColours[pixel]);
-//                    write_to_bitstream(ga_config.pen_colours[pixel]);
                 }
                 break;
         }
