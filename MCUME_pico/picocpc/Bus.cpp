@@ -33,9 +33,15 @@ void Bus::step()
         clearInterruptCounterGA();
     }
 
+    if(!_hsyncWait)
+    {
+        _display->drawScanLine();
+        setHSyncWait(true);
+    }
+
     if(!_vsyncWait)
     {
-        _display->drawFrame();
+        _display->drawVSync();
         setVSyncWait(true);
     }
 }
@@ -92,6 +98,10 @@ bool Bus::isHighRomEnabled()
 
 void Bus::setVSyncWait(bool vsync) {
     _vsyncWait = vsync;
+}
+
+void Bus::setHSyncWait(bool hsync) {
+    _hsyncWait = hsync;
 }
 
 void Bus::draw(uint8_t pixel)

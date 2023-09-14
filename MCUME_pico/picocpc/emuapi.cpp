@@ -1,4 +1,4 @@
-#define KEYMAP_PRESENT 1
+#define KEYMAP_PRESENT 0
 
 #define PROGMEM
 
@@ -1246,8 +1246,9 @@ void emu_init(void)
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   tft.begin();
 #endif
-
-  sd_init_driver(); 
+#if (!defined(PIMORONI))
+  sd_init_driver();
+#endif
   FRESULT fr = f_mount(&fatfs, "0:", 1);    
 
   strcpy(selection,ROMSDIR);

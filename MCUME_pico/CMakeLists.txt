@@ -14,11 +14,16 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the Pico SDK
 pico_sdk_init()
 
-add_subdirectory(FatFs_SPI build)
+add_subdirectory(lib/FatFs_SPI)
+add_subdirectory(lib/sdcard)
+
+include_directories(.lib/FatFs_SPI)
+include_directories(./lib/sdcard)
 
 include_directories(config)
-include_directories(vga_t4)
-include_directories(picovga_t4)
+#include_directories(vga_t4)
+#include_directories(picovga_t4)
+include_directories(picovga_t4_vgaboard)
 include_directories(tft_t)
 include_directories(psram)
 
@@ -112,15 +117,16 @@ set(PICOCOLEM_SOURCES
 	)
 
 set(PICOCPC_SOURCES
-		picocpc/cpc.cpp
 		picocpc/emuapi.cpp
 		picocpc/picocpc.cpp
+		picocpc/cpc.cpp
         picocpc/CRTC.cpp
 		picocpc/GA.cpp
         picocpc/Processor.cpp
-#		picocpc/vga-test.cpp
 		picocpc/Bus.cpp
-		picocpc/Memory.cpp picocpc/Display.cpp picocpc/Display.h)
+		picocpc/Memory.cpp
+		picocpc/Display.cpp
+		)
 
 set(PICOO2EM_SOURCES 
 		picoo2em/audio.c 
@@ -278,11 +284,17 @@ set(VGA_T4_SOURCES
 		vga_t4/scanvideo.c
 	)
 
+set(PICOVGA_T4_VGABOARD_SOURCES
+		picovga_t4_vgaboard/VGA_t4.cpp
+		picovga_t4_vgaboard/vga.cpp
+		picovga_t4_vgaboard/vga_vmode.cpp
+)
+
 set(PICOVGA_T4_SOURCES 
 		picovga_t4/VGA_t4.cpp
 		picovga_t4/vga.cpp
 		picovga_t4/vga_vmode.cpp
-	)
+)
 
 set(PSRAM_SOURCES 
 		psram/psram_t.cpp
@@ -301,8 +313,8 @@ set(TESTIO_SOURCES
 		testio/emuapi.cpp
 	)
 
-set(TESTVGA_SOURCES 
-		testvga/testvga.cpp
+set(TESTVGA_SOURCES
+        testvga/testvga.cpp
 	)
 
 set(TESTKEYMAX_SOURCES 
@@ -340,36 +352,60 @@ add_executable(mcume
 #		${PICOVALIDATION_SOURCES}
 #		${PSRAM_SOURCES}
 #		${VGA_T4_SOURCES}
-        ${PICOVGA_T4_SOURCES}
-#		${PICO_SCANVIDEO_SOURCES}
+		${PICOVGA_T4_VGABOARD_SOURCES}
+#       ${PICOVGA_T4_SOURCES}
 #       ${TFT_T_SOURCES}
 	)
 
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/timing.pio)
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/scanvideo.pio)
-pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4/picovga.pio)
+#pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4/picovga.pio)
+pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4_vgaboard/picovga.pio)
 
+set(SD_CS "22" CACHE STRING "Specify the Chip Select GPIO pin for the SD card")
+set(SD_SCK "5" CACHE STRING "Specify the Clock GPIO pin for the SD card")
+set(SD_MOSI "18" CACHE STRING "Select the Master Out Slave In GPIO pin for the SD card")
+set(SD_MISO "19" CACHE STRING "Select the Master In Slave Out GPIO pin for the SD card")
 
+target_compile_definitions(mcume PRIVATE
+		SDCARD_PIN_SPI0_CS=${SD_CS}
+		SDCARD_PIN_SPI0_SCK=${SD_SCK}
+		SDCARD_PIN_SPI0_MOSI=${SD_MOSI}
+		SDCARD_PIN_SPI0_MISO=${SD_MISO}
+		SDCARD_PIO=pio1
+		SDCARD_PIO_SM=0
+)
 
-target_link_libraries(mcume pico_multicore
-	    pico_stdlib
-	    FatFs_SPI
-#	     pico_scanvideo_dpi
-	    hardware_adc
-	    hardware_pio
-        hardware_pwm	    
+add_compile_definitions(mcume PRIVATE
+		PICO_SCANVIDEO_PLANE_COUNT=3
+		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER2_WORDS=10
+		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER3_WORDS=10
+)
+
+target_link_libraries(mcume PRIVATE
+		pico_multicore
+		pico_stdlib
+		sdcard
+		FatFs_SPI
+		#        pico_scanvideo_dpi #not needed as VGA_t4 includes the code within it
+		hardware_spi
+		hardware_gpio
+		hardware_pio
+		hardware_adc
+		hardware_pwm
 	)
 
 
-target_compile_options(mcume PUBLIC -O3)
+#target_compile_options(mcume PUBLIC -O3)
 #target_compile_options(mcume PUBLIC -Wall -Wextra -Wno-unused-function -Wno-unused-parameter)
+
 IF (NOT DEFINED N_SD_CARDS)
     SET(N_SD_CARDS 1)
 ENDIF()
 target_compile_definitions(mcume PUBLIC N_SD_CARDS=${N_SD_CARDS})
 
 
-#pico_enable_stdio_uart(mcume 0)
+pico_enable_stdio_uart(mcume 0)
 pico_enable_stdio_usb(mcume 1)
 
 pico_add_extra_outputs(mcume)

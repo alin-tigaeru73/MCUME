@@ -6,24 +6,6 @@
 #include "pico/stdlib.h"
 #endif
 
-extern int registers[16];
-extern uint16_t memoryStartAddr;
-extern uint8_t selected_register;
-extern uint8_t horizontalCounter;
-extern uint8_t charLineCounter;
-extern uint8_t scanlineCounter;
-extern uint8_t vertical_adjust_count;
-extern uint8_t microsec_count_crtc;
-
-extern bool is_hsync_active();
-extern bool is_vsync_active();
-extern bool is_within_display();
-extern uint16_t crtc_generate_addr();
-extern void crtc_step();
-extern void write_crt_controller(unsigned short address, uint8_t value);
-extern uint8_t read_crt_controller(unsigned short address);
-
-
 class Bus;
 class CRTC
 {

@@ -5,11 +5,15 @@
 #include "pico.h"
 #include "pico/stdlib.h"
 #endif
+extern "C" {
 #include "emuapi.h"
+}
 
 #define WIDTH           320
 #define HEIGHT          200
-#define VGA_RGB(r,g,b)   ( (((r>>5)&0x07)<<5) | (((g>>5)&0x07)<<2) | (((b>>6)&0x3)<<0) )
+//#define VGA_RGB(r,g,b)   ( (((r>>5)&0x07)<<5) | (((g>>5)&0x07)<<2) | (((b>>6)&0x3)<<0) )
+// the previous is 8 bit, below is 16 bit
+#define VGA_RGB(r,g,b)  ( (((b>>3)&0x1f)<<11) | (((g>>2)&0x3f)<<5) | (((r>>3)&0x1f)<<0) )
 
 class Bus;
 
@@ -18,69 +22,8 @@ namespace Display
     struct RGB {
         int R, G, B;
     };
-    struct RGB firmware_palette[27] = {
-            {0, 0, 0}, // 0
-            {0, 0, 128}, // 1
-            {0, 0, 255}, // 2
-            {128, 0, 0}, // 3
-            {128, 0, 128}, // 4
-            {128, 0, 255}, // 5
-            {255, 0, 0}, // 6
-            {255, 0, 128}, // 7
-            {255, 0, 255}, // 8
-            {0, 128, 0}, // 9
-            {0, 128, 128}, // 10
-            {0, 128, 255}, // 11
-            {128, 128, 0}, // 12
-            {128, 128, 128}, // 13
-            {128, 128, 255}, // 14
-            {255, 128, 0}, // 15
-            {255, 128, 128}, // 16
-            {255, 128, 255}, // 17
-            {0, 255, 0}, // 18
-            {0, 255, 128}, // 19
-            {0, 255, 255}, // 20
-            {128, 255, 0}, // 21
-            {128, 255, 128}, // 22
-            {128, 255, 255}, // 23
-            {255, 255, 0}, // 24
-            {255, 255, 128}, // 25
-            {255, 255, 255} // 26
-    };
-    uint8_t hardware_colours[32] = {
-            13,
-            13,
-            19,
-            25,
-            1,
-            7,
-            10,
-            16,
-            7,
-            25,
-            24,
-            26,
-            6,
-            8,
-            15,
-            17,
-            1,
-            19,
-            18,
-            20,
-            0,
-            2,
-            9,
-            11,
-            4,
-            22,
-            21,
-            23,
-            3,
-            5,
-            12,
-            14
-    };
+    extern struct RGB firmware_palette[27];
+    extern uint8_t hardware_colours[32];
 
     class Display {
     private:
@@ -88,18 +31,19 @@ namespace Display
         int _position;
         int _x;
         int _y;
-        unsigned char* _bitstream;
+        unsigned short* _bitstream;
     public:
         explicit Display(Bus* bus)
                 : _bus(bus),
                   _position(0),
                   _x(0),
                   _y(0),
-                  _bitstream((unsigned char *)emu_Malloc(WIDTH*HEIGHT))
+                  _bitstream((unsigned short *)emu_Malloc(WIDTH*2))
         {
         };
         void populateBitstream(uint8_t pixel);
-        void drawFrame();
+        void drawVSync();
+        void drawScanLine();
     };
 }
 

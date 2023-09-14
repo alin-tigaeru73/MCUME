@@ -65,7 +65,7 @@ uint8_t Processor::inZ80(uint16_t port)
 {
     if(!(port & 0x4000)) return _bus->readCRTC(port); // The CRTC is selected when bit 14 is set to 0.
 
-    // TODO
+    // TODO default return value
     return 0;
 }
 

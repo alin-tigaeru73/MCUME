@@ -21,6 +21,7 @@ private:
     GateArray* _ga;
     Display::Display* _display;
     bool _vsyncWait;
+    bool _hsyncWait;
 public:
     Bus()
       : _processor(new Processor(this)),
@@ -28,7 +29,8 @@ public:
         _crtc(new CRTC(this)),
         _ga(new GateArray(this)),
         _display(new Display::Display(this)),
-        _vsyncWait(true)
+        _vsyncWait(true),
+        _hsyncWait(true)
     {
     };
     ~Bus()
@@ -53,6 +55,7 @@ public:
     bool isVSyncActive();
     bool isWithinDisplay();
     void setVSyncWait(bool vsync);
+    void setHSyncWait(bool hsync);
     void draw(uint8_t pixel);
 };
 
