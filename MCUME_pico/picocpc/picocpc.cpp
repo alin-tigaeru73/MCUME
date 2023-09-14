@@ -9,7 +9,7 @@ extern "C" {
 
 
 #include "cpc.h"
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef USE_VGA
 #include "vga_t_dma.h"
@@ -64,8 +64,8 @@ int main(void) {
               emu_start();        
               tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
               tft.startDMA(); 
-              struct repeating_timer timer;
-              add_repeating_timer_ms(5, repeating_timer_callback, NULL, &timer);                               
+              struct repeating_timer timer{};
+              add_repeating_timer_ms(5, repeating_timer_callback, nullptr, &timer);
             }  
             tft.waitSync();
         }
