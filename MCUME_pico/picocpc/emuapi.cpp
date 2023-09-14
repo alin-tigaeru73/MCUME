@@ -1,4 +1,4 @@
-#define KEYMAP_PRESENT 1
+#define KEYMAP_PRESENT 0
 
 #define PROGMEM
 
