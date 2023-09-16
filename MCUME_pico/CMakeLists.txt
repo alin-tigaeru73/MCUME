@@ -17,7 +17,7 @@ pico_sdk_init()
 add_subdirectory(lib/FatFs_SPI)
 add_subdirectory(lib/sdcard)
 
-include_directories(.lib/FatFs_SPI)
+include_directories(./lib/FatFs_SPI)
 include_directories(./lib/sdcard)
 
 include_directories(config)
@@ -395,7 +395,6 @@ target_link_libraries(mcume PRIVATE
 		hardware_pwm
 	)
 
-
 #target_compile_options(mcume PUBLIC -O3)
 #target_compile_options(mcume PUBLIC -Wall -Wextra -Wno-unused-function -Wno-unused-parameter)
 
@@ -403,7 +402,6 @@ IF (NOT DEFINED N_SD_CARDS)
     SET(N_SD_CARDS 1)
 ENDIF()
 target_compile_definitions(mcume PUBLIC N_SD_CARDS=${N_SD_CARDS})
-
 
 pico_enable_stdio_uart(mcume 0)
 pico_enable_stdio_usb(mcume 1)

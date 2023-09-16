@@ -1,22 +1,17 @@
 #ifndef CHIPS_IMPL
   #define CHIPS_IMPL
 #endif
-#include <cstring>
 #include "cpc.h"
 
 extern "C" {
 #include "emuapi.h"
 #include "platform_config.h"
 }
-#define WIDTH           320
-#define HEIGHT          200
-#define LOWER_ROM_END   0x4000
-#define UPPER_ROM_BEGIN 0xC000
 
 Bus* bus = nullptr;
 
 /**
- * Creates initial emulation state (i.e. sets up color palette, clears RAM, initialises CPU)
+ * Creates initial emulation state
 */
 void cpc_Init(void)
 {
