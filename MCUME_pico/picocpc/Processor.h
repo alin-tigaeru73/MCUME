@@ -12,7 +12,7 @@ class Bus;
 class Processor
 {
 private:
-    uint64_t _pins;
+    uint64_t _pins{};
     z80_t _cpu{};
     Bus* _bus;
 public:
@@ -32,5 +32,4 @@ public:
     bool step();
 };
 
-
-#endif //PROCESSOR_H
+#endif

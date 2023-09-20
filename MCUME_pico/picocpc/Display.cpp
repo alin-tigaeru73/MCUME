@@ -1,7 +1,7 @@
 #include "Display.h"
 #include "Bus.h"
 
-struct Display::RGB Display::firmware_palette[27] = {
+const struct Display::RGB Display::firmware_palette[27] = {
         {0, 0, 0}, // 0
         {0, 0, 128}, // 1
         {0, 0, 255}, // 2
@@ -31,7 +31,7 @@ struct Display::RGB Display::firmware_palette[27] = {
         {255, 255, 255} // 26
 };
 
-uint8_t Display::hardware_colours[32] = {
+const uint8_t Display::hardware_colours[32] = {
         13,
         13,
         19,
@@ -66,9 +66,9 @@ uint8_t Display::hardware_colours[32] = {
         14
 };
 
-void Display::Display::populateBitstream(uint8_t pixel) {
+void Display::Display::populateBitstream(uint8_t pixel)
+{
     _x = _position % WIDTH;
-//    _y = _position / WIDTH;
 
     _bitstream[_x] = VGA_RGB(firmware_palette[hardware_colours[pixel]].R,
                                        firmware_palette[hardware_colours[pixel]].G,
@@ -93,6 +93,7 @@ void Display::Display::drawVSync()
     emu_DrawVsync();
 }
 
-void Display::Display::drawScanLine() {
+void Display::Display::drawScanLine()
+{
     emu_DrawLine16(_bitstream, WIDTH, HEIGHT, _y);
 }

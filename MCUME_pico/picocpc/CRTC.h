@@ -6,12 +6,13 @@
 #include "pico/stdlib.h"
 #endif
 
+
 class Bus;
 class CRTC
 {
 private:
     Bus* _bus;
-    uint8_t registers[16] = {
+    uint8_t _registers[16] = {
             63,    // horizontal_total
             40,    // horizontal_displayed
             46,    // horizontal_sync_position
@@ -29,23 +30,23 @@ private:
             0,    // cursor_addr_high
             0     // cursor_addr_low
     };
-    uint16_t memoryStartAddress;
-    uint8_t selectedRegister;
-    uint8_t horizontalCounter;
-    uint8_t charLineCounter;
-    uint8_t scanlineCounter;
-    uint8_t verticalAdjustCounter;
-    uint8_t microsecondCounter;
+    uint16_t _memoryStartAddress{};
+    uint8_t _selectedRegister{};
+    uint8_t _horizontalCounter{};
+    uint8_t _charLineCounter{};
+    uint8_t _scanlineCounter{};
+    uint8_t _verticalAdjustCounter{};
+    uint8_t _microsecondCounter{};
 public:
     explicit CRTC(Bus* bus)
-      :  _bus(bus),
-         memoryStartAddress(0),
-         selectedRegister(0),
-         horizontalCounter(0),
-         charLineCounter(0),
-         scanlineCounter(0),
-         verticalAdjustCounter(0),
-         microsecondCounter(0)
+      : _bus(bus),
+        _memoryStartAddress(0),
+        _selectedRegister(0),
+        _horizontalCounter(0),
+        _charLineCounter(0),
+        _scanlineCounter(0),
+        _verticalAdjustCounter(0),
+        _microsecondCounter(0)
     {
     };
     bool isHSyncActive();

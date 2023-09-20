@@ -15,7 +15,7 @@ void Bus::step()
     bool interruptAcknowledged = _processor->step();
     _crtc->step();
     bool interruptGenerated = _ga->step();
-    if(_ga->checkWaitSignal())
+    if(_ga->getWaitSignal())
     {
         _processor->assertWait();
     }
@@ -88,12 +88,12 @@ bool Bus::isWithinDisplay()
 
 bool Bus::isLowRomEnabled()
 {
-    return _ga->checkLowRom();
+    return _ga->getLowRomStatus();
 }
 
 bool Bus::isHighRomEnabled()
 {
-    return _ga->checkHighRom();
+    return _ga->getHighRomStatus();
 }
 
 void Bus::setVSyncWait(bool vsync) {

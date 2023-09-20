@@ -24,7 +24,6 @@
 #define ACTION_RUNVGA       130
 
 #ifdef KEYMAP_PRESENT
-// TODO add key mappings
 #endif
 
 // here are joystick mask mappings in emuapi.h for picospeccy

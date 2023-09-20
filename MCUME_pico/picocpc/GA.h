@@ -2,6 +2,7 @@
 #define GA_H
 
 #ifndef PICO_H_
+
 #include "pico.h"
 #include "pico/stdlib.h"
 #endif
@@ -13,24 +14,23 @@ class GateArray
 {
 private:
     Bus* _bus;
-    uint8_t _penSelected;
-    uint8_t _penNumber;
-    uint8_t* _penColours;
-    uint8_t _screenMode;
-    bool _lowRomEnabled;
-    bool _highRomEnabled;
-    uint8_t _interruptCounter;
-    uint8_t _delayVSyncCounter;
-    bool _waitSignal;
-    bool _currentHSync;
-    bool _currentVSync;
-    uint8_t _microsecondCounter;
-    // TODO: figure out how to dynamically manage the _penColours array, based on screen mode
+    uint8_t _penSelected{};
+    uint8_t _penNumber{};
+    uint8_t* _penColours{};
+    uint8_t _screenMode{};
+    bool _lowRomEnabled{};
+    bool _highRomEnabled{};
+    uint8_t _interruptCounter{};
+    uint8_t _delayVSyncCounter{};
+    bool _waitSignal{};
+    bool _currentHSync{};
+    bool _currentVSync{};
+    uint8_t _microsecondCounter{};
 public:
     explicit GateArray(Bus* bus)
             : _bus(bus),
               _penSelected(0),
-              _penNumber(17), // FIXME
+              _penNumber(17),
               _screenMode(1),
               _lowRomEnabled(true),
               _highRomEnabled(true),
@@ -43,10 +43,7 @@ public:
     {
         _penColours = new uint8_t[_penNumber];
     };
-    ~GateArray()
-    {
-        delete _penColours;
-    }
+    ~GateArray() = default;
     bool updateInterrupts();
     void generatePixelData();
     bool step();
@@ -54,9 +51,9 @@ public:
     void selectPenColour(uint8_t value);
     void manageRomScreenInterrupt(uint8_t value);
     void write(uint8_t value);
-    bool checkWaitSignal() const;
+    bool getWaitSignal() const;
     void clearInterruptCounter();
-    bool checkLowRom() const;
-    bool checkHighRom() const;
+    bool getLowRomStatus() const;
+    bool getHighRomStatus() const;
 };
 #endif

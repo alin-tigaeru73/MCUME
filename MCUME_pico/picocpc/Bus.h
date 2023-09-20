@@ -6,6 +6,7 @@
 #include "pico/stdlib.h"
 #endif
 
+#include <memory>
 #include "Processor.h"
 #include "Memory.h"
 #include "CRTC.h"
@@ -15,32 +16,25 @@
 class Bus
 {
 private:
-    Processor* _processor;
-    Memory* _memory;
-    CRTC* _crtc;
-    GateArray* _ga;
-    Display::Display* _display;
-    bool _vsyncWait;
-    bool _hsyncWait;
+    std::unique_ptr<Processor> _processor;
+    std::unique_ptr<Memory> _memory;
+    std::unique_ptr<CRTC> _crtc;
+    std::unique_ptr<GateArray> _ga;
+    std::unique_ptr<Display::Display> _display;
+    bool _vsyncWait{};
+    bool _hsyncWait{};
 public:
     Bus()
-      : _processor(new Processor(this)),
-        _memory(new Memory(this)),
-        _crtc(new CRTC(this)),
-        _ga(new GateArray(this)),
-        _display(new Display::Display(this)),
+      : _processor(std::make_unique<Processor>(this)),
+        _memory(std::make_unique<Memory>(this)),
+        _crtc(std::make_unique<CRTC>(this)),
+        _ga(std::make_unique<GateArray>(this)),
+        _display(std::make_unique<Display::Display>(this)),
         _vsyncWait(true),
         _hsyncWait(true)
     {
     };
-    ~Bus()
-    {
-        delete _processor;
-        delete _memory;
-        delete _crtc;
-        delete _ga;
-        delete _display;
-    };
+    ~Bus() = default;
     void step();
     uint8_t readMemory(uint16_t addr);
     void writeMemory(uint16_t addr, uint8_t value);
@@ -59,4 +53,4 @@ public:
     void draw(uint8_t pixel);
 };
 
-#endif //BUS_H
+#endif

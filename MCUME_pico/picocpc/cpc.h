@@ -6,6 +6,8 @@
 #include "pico/stdlib.h"
 #endif
 
+#include <memory>
+
 #include "Bus.h"
 #include "Display.h"
 

@@ -1,5 +1,5 @@
 #ifndef CHIPS_IMPL
-  #define CHIPS_IMPL
+#define CHIPS_IMPL
 #endif
 #include "cpc.h"
 
@@ -8,21 +8,22 @@ extern "C" {
 #include "platform_config.h"
 }
 
-Bus* bus = nullptr;
+auto bus = std::make_unique<Bus>();
 
 /**
  * Creates initial emulation state
 */
 void cpc_Init(void)
 {
-    for(unsigned char hardware_colour : Display::hardware_colours)
+    for(auto hardware_colour : Display::hardware_colours)
     {
         emu_SetPaletteEntry(R16(Display::firmware_palette[hardware_colour].R),
                             G16(Display::firmware_palette[hardware_colour].G),
                             B16(Display::firmware_palette[hardware_colour].B),
                             hardware_colour);
     }
-    bus = new Bus();
+
+
 }
 
 /**

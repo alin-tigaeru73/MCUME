@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "pico.h"
 
 #include "GA.h"
@@ -58,43 +60,40 @@ void GateArray::generatePixelData()
     {
         uint16_t address = _bus->getVideoAddress() + i;
         uint8_t encodedByte = _bus->readMemory(address);
-        uint8_t pixel0, pixel1, pixel2, pixel3;
+        std::vector<uint8_t> pixels;
         switch(_screenMode)
         {
             case 0:
-                pixel0 = (encodedByte & 0x80) >> 7 |
-                         (encodedByte & 0x08) >> 2 |
-                         (encodedByte & 0x20) >> 3 |
-                         (encodedByte & 0x02) << 2;
-                pixel1 = (encodedByte & 0x40) >> 6 |
-                         (encodedByte & 0x04) >> 1 |
-                         (encodedByte & 0x10) >> 2 |
-                         (encodedByte & 0x01) << 3;
-                _bus->draw(_penColours[pixel0]);
-                _bus->draw(_penColours[pixel1]);
+                pixels.push_back((encodedByte & 0x80) >> 7 |
+                                    (encodedByte & 0x08) >> 2 |
+                                    (encodedByte & 0x20) >> 3 |
+                                    (encodedByte & 0x02) << 2);
+                pixels.push_back((encodedByte & 0x40) >> 6 |
+                                    (encodedByte & 0x04) >> 1 |
+                                    (encodedByte & 0x10) >> 2 |
+                                    (encodedByte & 0x01) << 3);
                 break;
             case 1:
-                pixel0 = (encodedByte & 0x80) >> 7 |
-                         (encodedByte & 0x08) >> 2;
-                pixel1 = (encodedByte & 0x40) >> 6 |
-                         (encodedByte & 0x04) >> 1;
-                pixel2 = (encodedByte & 0x02) |
-                         (encodedByte & 0x20) >> 5;
-                pixel3 = (encodedByte & 0x10) >> 4 |
-                         (encodedByte & 0x01) << 1;
-                _bus->draw(_penColours[pixel0]);
-                _bus->draw(_penColours[pixel1]);
-                _bus->draw(_penColours[pixel2]);
-                _bus->draw(_penColours[pixel3]);
+                pixels.push_back((encodedByte & 0x80) >> 7 |
+                                    (encodedByte & 0x08) >> 2);
+                pixels.push_back((encodedByte & 0x40) >> 6 |
+                                    (encodedByte & 0x04) >> 1);
+                pixels.push_back((encodedByte & 0x02) |
+                                    (encodedByte & 0x20) >> 5);
+                pixels.push_back((encodedByte & 0x10) >> 4 |
+                                    (encodedByte & 0x01) << 1);
                 break;
             case 2:
-                uint8_t pixel;
-                for (int color = 0; color < 8; color++)
+                for (uint8_t color = 0; color < 8; color++)
                 {
-                    pixel = (encodedByte >> (7 - color)) & 1;
-                    _bus->draw(_penColours[pixel]);
+                    pixels.push_back((encodedByte >> (7 - color)) & 1);
                 }
                 break;
+        }
+
+        for(auto pixel : pixels)
+        {
+            _bus->draw(_penColours[pixel]);
         }
     }
 }
@@ -180,12 +179,12 @@ void GateArray::write(uint8_t value)
             manageRomScreenInterrupt(value);
             break;
         case 0b11:
-            // This would be RAM banking but it is not available on the CPC464.
+            // This would be RAM banking, but it is not available on the CPC464.
             break;
     }
 }
 
-bool GateArray::checkWaitSignal() const
+bool GateArray::getWaitSignal() const
 {
     return _waitSignal;
 }
@@ -195,12 +194,12 @@ void GateArray::clearInterruptCounter()
     _interruptCounter &= 0x1f;
 }
 
-bool GateArray::checkLowRom() const
+bool GateArray::getLowRomStatus() const
 {
     return _lowRomEnabled;
 }
 
-bool GateArray::checkHighRom() const
+bool GateArray::getHighRomStatus() const
 {
     return _highRomEnabled;
 }
