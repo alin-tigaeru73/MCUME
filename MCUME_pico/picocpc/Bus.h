@@ -12,6 +12,7 @@
 #include "CRTC.h"
 #include "GA.h"
 #include "Display.h"
+#include "Keyboard.h"
 
 class Bus
 {
@@ -21,6 +22,7 @@ private:
     std::unique_ptr<CRTC> _crtc;
     std::unique_ptr<GateArray> _ga;
     std::unique_ptr<Display::Display> _display;
+    std::unique_ptr<Keyboard::Keyboard> _keyboard;
     bool _vsyncWait{};
     bool _hsyncWait{};
 public:
@@ -30,6 +32,7 @@ public:
         _crtc(std::make_unique<CRTC>(this)),
         _ga(std::make_unique<GateArray>(this)),
         _display(std::make_unique<Display::Display>(this)),
+        _keyboard(std::make_unique<Keyboard::Keyboard>(this)),
         _vsyncWait(true),
         _hsyncWait(true)
     {
@@ -51,6 +54,7 @@ public:
     void setVSyncWait(bool vsync);
     void setHSyncWait(bool hsync);
     void draw(uint8_t pixel);
+    void selectROMNumber(uint8_t value);
 };
 
 #endif

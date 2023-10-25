@@ -57,13 +57,14 @@ void Processor::writeZ80(uint16_t addr, uint8_t value)
 
 void Processor::outZ80(uint16_t port, uint8_t value)
 {
-    if(!(port & 0x8000)) _bus->writeGA(value);           // The Gate Array is selected when bit 15 is set to 0.
-    if(!(port & 0x4000)) _bus->writeCRTC(port, value); // The CRTC is selected when bit 14 is set to 0.
+    if(!(port & 0x8000)) _bus->writeGA(value);
+    if(!(port & 0x4000)) _bus->writeCRTC(port, value);
+    if((port & 0xDF00) == 0xDF00) _bus->selectROMNumber(value);
 }
 
 uint8_t Processor::inZ80(uint16_t port)
 {
-    if(!(port & 0x4000)) return _bus->readCRTC(port); // The CRTC is selected when bit 14 is set to 0.
+    if(!(port & 0x4000)) return _bus->readCRTC(port);
 
     // TODO default return value
     return 0;

@@ -15,6 +15,7 @@
 #define PIMORONI         1
 
 #ifdef PIMORONI
+#define USB_KBD        1
 #define USE_VGA        1
 #define INVX           1
 #define HAS_SND        1

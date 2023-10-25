@@ -108,3 +108,8 @@ void Bus::draw(uint8_t pixel)
 {
     _display->populateBitstream(pixel);
 }
+
+void Bus::selectROMNumber(uint8_t value)
+{
+    
+}

@@ -7,7 +7,7 @@
 
 /* Title */
 #define TITLE "    Amstrad CPC Emulator"
-#define ROMSDIR "roms"
+#define ROMSDIR "cpc"
 
 #define emu_Init(ROM) {cpc_Init(); cpc_Start(ROM);}
 #define emu_Step(x) {cpc_Step();}
@@ -26,7 +26,6 @@
 #ifdef KEYMAP_PRESENT
 #endif
 
-// here are joystick mask mappings in emuapi.h for picospeccy
 
 #define MASK_JOY2_RIGHT 0x0001
 #define MASK_JOY2_LEFT  0x0002
@@ -43,6 +42,8 @@
 #define MASK_JOY1_BTN   0x1000
 #define MASK_KEY_USER4  0x2000
 #define MASK_OSKB       0x8000
+
+extern uint8_t usbKbdInput;
 
 extern void emu_init(void);
 extern void emu_start(void);
@@ -90,6 +91,7 @@ extern int emu_ReadAnalogJoyY(int min, int max);
 extern int emu_ReadI2CKeyboard(void);
 extern void emu_KeyboardOnUp(int keymodifer, int key);
 extern void emu_KeyboardOnDown(int keymodifer, int key);
+extern void emu_ForwardKeyChar(uint8_t key);
 
 extern void emu_sndPlaySound(int chan, int volume, int freq);
 extern void emu_sndPlayBuzz(int size, int val);

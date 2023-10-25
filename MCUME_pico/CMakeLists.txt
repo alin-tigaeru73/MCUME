@@ -16,9 +16,13 @@ pico_sdk_init()
 
 add_subdirectory(lib/FatFs_SPI)
 add_subdirectory(lib/sdcard)
+#add_subdirectory(lib/tinyusb)
 
 include_directories(./lib/FatFs_SPI)
 include_directories(./lib/sdcard)
+
+include_directories($ENV{PICO_SDK_PATH}/lib/tinyusb/hw)
+include_directories($ENV{PICO_SDK_PATH}/lib/tinyusb/src)
 
 include_directories(config)
 #include_directories(vga_t4)
@@ -126,6 +130,9 @@ set(PICOCPC_SOURCES
 		picocpc/Bus.cpp
 		picocpc/Memory.cpp
 		picocpc/Display.cpp
+		picocpc/hid_app.c
+		picocpc/Keyboard.cpp
+		picocpc/Keyboard.h # This is for the USB keyboard
 		)
 
 set(PICOO2EM_SOURCES 
@@ -315,7 +322,7 @@ set(TESTIO_SOURCES
 
 set(TESTVGA_SOURCES
         testvga/testvga.cpp
-	)
+)
 
 set(TESTKEYMAX_SOURCES 
 		testkeymax/testkeymax.cpp
@@ -352,47 +359,56 @@ add_executable(mcume
 #		${PICOVALIDATION_SOURCES}
 #		${PSRAM_SOURCES}
 #		${VGA_T4_SOURCES}
-		${PICOVGA_T4_VGABOARD_SOURCES}
-#       ${PICOVGA_T4_SOURCES}
+#		${PICOVGA_T4_VGABOARD_SOURCES}
+       ${PICOVGA_T4_SOURCES}
 #       ${TFT_T_SOURCES}
 	)
 
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/timing.pio)
 #pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/vga_t4/scanvideo.pio)
-#pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4/picovga.pio)
-pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4_vgaboard/picovga.pio)
+pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4/picovga.pio)
+#pico_generate_pio_header(mcume ${CMAKE_CURRENT_LIST_DIR}/picovga_t4_vgaboard/picovga.pio)
 
-set(SD_CS "22" CACHE STRING "Specify the Chip Select GPIO pin for the SD card")
-set(SD_SCK "5" CACHE STRING "Specify the Clock GPIO pin for the SD card")
-set(SD_MOSI "18" CACHE STRING "Select the Master Out Slave In GPIO pin for the SD card")
-set(SD_MISO "19" CACHE STRING "Select the Master In Slave Out GPIO pin for the SD card")
+#set(SD_CS "22" CACHE STRING "Specify the Chip Select GPIO pin for the SD card")
+#set(SD_SCK "5" CACHE STRING "Specify the Clock GPIO pin for the SD card")
+#set(SD_MOSI "18" CACHE STRING "Select the Master Out Slave In GPIO pin for the SD card")
+#set(SD_MISO "19" CACHE STRING "Select the Master In Slave Out GPIO pin for the SD card")
+#
+#target_compile_definitions(mcume PRIVATE
+#		SDCARD_PIN_SPI0_CS=${SD_CS}
+#		SDCARD_PIN_SPI0_SCK=${SD_SCK}
+#		SDCARD_PIN_SPI0_MOSI=${SD_MOSI}
+#		SDCARD_PIN_SPI0_MISO=${SD_MISO}
+#		SDCARD_PIO=pio1
+#		SDCARD_PIO_SM=0
+#)
+#
+#add_compile_definitions(mcume PRIVATE
+#		PICO_SCANVIDEO_PLANE_COUNT=3
+#		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER2_WORDS=10
+#		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER3_WORDS=10
+#)
 
-target_compile_definitions(mcume PRIVATE
-		SDCARD_PIN_SPI0_CS=${SD_CS}
-		SDCARD_PIN_SPI0_SCK=${SD_SCK}
-		SDCARD_PIN_SPI0_MOSI=${SD_MOSI}
-		SDCARD_PIN_SPI0_MISO=${SD_MISO}
-		SDCARD_PIO=pio1
-		SDCARD_PIO_SM=0
-)
+# Make sure TinyUSB can find the config.h file
+target_include_directories(mcume PUBLIC
+	${CMAKE_CURRENT_LIST_DIR})
 
-add_compile_definitions(mcume PRIVATE
-		PICO_SCANVIDEO_PLANE_COUNT=3
-		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER2_WORDS=10
-		PICO_SCANVIDEO_MAX_SCANLINE_BUFFER3_WORDS=10
-)
+
 
 target_link_libraries(mcume PRIVATE
 		pico_multicore
 		pico_stdlib
 		sdcard
 		FatFs_SPI
-		#        pico_scanvideo_dpi #not needed as VGA_t4 includes the code within it
+		#        pico_scanvideo_dpi
 		hardware_spi
 		hardware_gpio
 		hardware_pio
 		hardware_adc
 		hardware_pwm
+		# For USB keyboard
+		tinyusb_host
+		tinyusb_board
 	)
 
 #target_compile_options(mcume PUBLIC -O3)
@@ -403,8 +419,8 @@ IF (NOT DEFINED N_SD_CARDS)
 ENDIF()
 target_compile_definitions(mcume PUBLIC N_SD_CARDS=${N_SD_CARDS})
 
-pico_enable_stdio_uart(mcume 0)
-pico_enable_stdio_usb(mcume 1)
+pico_enable_stdio_uart(mcume 1)
+pico_enable_stdio_usb(mcume 0)
 
 pico_add_extra_outputs(mcume)
 

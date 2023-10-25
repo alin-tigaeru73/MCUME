@@ -23,12 +23,8 @@ void cpc_Init(void)
                             hardware_colour);
     }
 
-
 }
 
-/**
- * Steps through emulation
-*/
 void cpc_Step(void)
 {
     bus->step();
@@ -36,7 +32,8 @@ void cpc_Step(void)
 
 void cpc_Input(int bClick)
 {
-
+    emu_printi(bClick);
+    // This receives the ASCII code for a key (or HID if its a control character). We need to convert it to a CPC firmware key code.
 }
 
 void cpc_Start(char* filename)

@@ -3,13 +3,14 @@
 
 extern "C" {
   #include "iopins.h"  
-  #include "emuapi.h"  
+  #include "emuapi.h"
+  #include "tusb.h"
 }
 #include "keyboard_osd.h"
 
-
 #include "cpc.h"
 #include <cstdio>
+#include <bsp/board.h>
 
 #ifdef USE_VGA
 #include "vga_t_dma.h"
@@ -17,10 +18,31 @@ extern "C" {
 #include "tft_t_dma.h"
 #endif
 volatile bool vbl=true;
+const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
+extern "C" void hid_app_task(void);
+
+//--------------------------------------------------------------------+
+// TinyUSB Callbacks
+//--------------------------------------------------------------------+
+
+void tuh_mount_cb(uint8_t dev_addr)
+{
+    // application set-up
+    printf("A device with address %d is mounted\r\n", dev_addr);
+}
+
+void tuh_umount_cb(uint8_t dev_addr)
+{
+    // application tear-down
+    printf("A device with address %d is unmounted \r\n", dev_addr);
+}
+
+// I think this is called periodically
 bool repeating_timer_callback(struct repeating_timer *t) {
-    uint16_t bClick = emu_DebounceLocalKeys();
-    emu_Input(bClick);     
+
+    uint16_t bClick = emu_ReadKeys();
+    emu_Input(bClick);
     if (vbl) {
         vbl = false;
     } else {
@@ -44,9 +66,27 @@ int main(void) {
 //    set_sys_clock_khz(210000, true);    
     set_sys_clock_khz(230000, true);    
 //    set_sys_clock_khz(225000, true);    
-//    set_sys_clock_khz(250000, true);  
+//    set_sys_clock_khz(250000, true);
+    board_init();
+
+    // init host stack on configured roothub port
+    tuh_init(BOARD_TUH_RHPORT);
+
     stdio_init_all();
 
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    //flash 2 times 5 seconds gap, allows stdio_init_all to finish
+    board_led_on();
+    sleep_ms(1000);
+    board_led_off();
+    sleep_ms(5000);
+    board_led_on();
+    sleep_ms(1000);
+    board_led_off();
+
+    tusb_init();
 #ifdef USE_VGA    
     tft.begin(VGA_MODE_320x240);
 #else
@@ -56,7 +96,7 @@ int main(void) {
     while (true) {
         if (menuActive()) {
             uint16_t bClick = emu_DebounceLocalKeys();
-            int action = ACTION_RUNTFT;  //handleMenu(bClick);
+            int action = handleMenu(bClick);
             char * filename = menuSelection();   
             if (action == ACTION_RUNTFT) {
               toggleMenu(false);
@@ -70,7 +110,11 @@ int main(void) {
             tft.waitSync();
         }
         else {
-            emu_Step();   
+            // For the USB keyboard
+            tuh_task();
+            hid_app_task();
+
+//            emu_Step();
         }
         //int c = getchar_timeout_us(0);
         //switch (c) {
@@ -135,7 +179,7 @@ void emu_DrawLine16(unsigned short * VBuf, int width, int height, int line)
         tft.writeLine16(width,height,line, VBuf);
 #endif        
     }
-}  
+}
 
 void emu_DrawScreen(unsigned char * VBuf, int width, int height, int stride) 
 {
