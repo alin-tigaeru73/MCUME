@@ -1,14 +1,12 @@
 #include <vector>
 
 #include "pico.h"
-
 #include "GA.h"
-#include "CRTC.h"
 #include "Bus.h"
 
 bool GateArray::updateInterrupts()
 {
-    bool interruptGenerated = false;
+    auto interruptGenerated = false;
     if(_currentHSync && !_bus->isHSyncActive())
     {
         // falling edge of CRTC hsync signal.
@@ -39,7 +37,7 @@ bool GateArray::updateInterrupts()
     return interruptGenerated;
 }
 
-void GateArray::generatePixelData()
+void GateArray::generatePixelData() const
 {
     if(!_currentHSync && _bus->isHSyncActive())
     {
@@ -58,8 +56,8 @@ void GateArray::generatePixelData()
 
     for(int i = 0; i < 2; i++)
     {
-        uint16_t address = _bus->getVideoAddress() + i;
-        uint8_t encodedByte = _bus->readMemory(address);
+        const uint16_t address = _bus->getVideoAddress() + i;
+        const uint8_t encodedByte = _bus->readMemory(address);
         std::vector<uint8_t> pixels;
         switch(_screenMode)
         {
@@ -91,7 +89,7 @@ void GateArray::generatePixelData()
                 break;
         }
 
-        for(auto pixel : pixels)
+        for(const auto& pixel : pixels)
         {
             _bus->draw(_penColours[pixel]);
         }
@@ -104,7 +102,7 @@ bool GateArray::step()
 
     if(_microsecondCounter == 3)
     {
-        bool interruptGenerated = updateInterrupts();
+        const auto interruptGenerated = updateInterrupts();
         generatePixelData();
 
         _currentHSync = _bus->isHSyncActive();
@@ -112,14 +110,11 @@ bool GateArray::step()
         _microsecondCounter = (_microsecondCounter + 1) % 4;
         return interruptGenerated;
     }
-    else
-    {
-        _microsecondCounter = (_microsecondCounter + 1) % 4;
-        return false;
-    }
+    _microsecondCounter = (_microsecondCounter + 1) % 4;
+    return false;
 }
 
-void GateArray::selectPen(uint8_t value)
+void GateArray::selectPen(const uint8_t value)
 {
     switch(value >> 4)
     {
@@ -134,14 +129,14 @@ void GateArray::selectPen(uint8_t value)
     }
 }
 
-void GateArray::selectPenColour(uint8_t value)
+void GateArray::selectPenColour(const uint8_t value) const
 {
     // Bits 0-4 of "value" specify the hardware colour number from the hardware colour palette.
     // (i.e. which index into the Palette array of structs.)
     _penColours[_penSelected] = value & 31;
 }
 
-void GateArray::manageRomScreenInterrupt(uint8_t value)
+void GateArray::manageRomScreenInterrupt(const uint8_t value)
 {
     if(_currentHSync && !_bus->isHSyncActive())
     {
@@ -165,7 +160,7 @@ void GateArray::manageRomScreenInterrupt(uint8_t value)
  *  --1--   --0--    Select screen mode, ROM configuration and interrupt control
  *  --1--   --1--    RAM management
 */
-void GateArray::write(uint8_t value)
+void GateArray::write(const uint8_t value)
 {
     switch(value >> 6)
     {

@@ -86,6 +86,8 @@ static int xRef;
 static int yRef;
 static uint8_t usbnavpad=0;
 uint8_t usbKbdInput=0;
+static bool isShift;
+static bool isCtrl;
 
 static bool menuOn=true;
 static bool autorun=true;
@@ -436,16 +438,20 @@ int emu_GetPad(void)
   return(bLastState/*|((joySwapped?1:0)<<7)*/);
 }
 
-void emu_ForwardKeyChar(uint8_t key)
+void emu_ForwardKeycode(uint8_t key, bool is_shift, bool is_ctrl)
 {
     usbKbdInput = key;
+    isShift = is_shift;
+    isCtrl = is_ctrl;
 }
 
 int emu_ReadKeys(void) 
 {
 #ifdef USB_KBD
-    return (uint16_t) usbKbdInput;
+    // Upper 8 bits are just the shift and ctrl status, lower 8 bits are the keycode pressed
+    return (((uint16_t) (isShift | (isCtrl << 1)) << 8)) | usbKbdInput;
 #else
+
     uint16_t retval;
   uint16_t j1 = readAnalogJoystick();
   uint16_t j2 = 0;
@@ -738,24 +744,24 @@ unsigned short emu_DebounceLocalKeys(void)
 int emu_ReadI2CKeyboard(void) {
   int retval=0;
 #ifdef PICOMPUTER
-  if (key_alt) {
-    keys = (const unsigned short *)key_map3;
-  }
-  else if (key_fn) {
-    keys = (const unsigned short *)key_map2;
-  }
-  else {
-    keys = (const unsigned short *)key_map1;
-  }
-  if (keymatrix_hitrow >=0 ) {
-    unsigned short match = ((unsigned short)keymatrix_hitrow<<8) | keymatrix[keymatrix_hitrow];  
-    for (int i=0; i<sizeof(matkeys)/sizeof(unsigned short); i++) {
-      if (match == matkeys[i]) {
-        hundred_ms_cnt = 0;    
-        return (keys[i]);
-      }
-    }
-  }
+//  if (key_alt) {
+//    keys = (const unsigned short *)key_map3;
+//  }
+//  else if (key_fn) {
+//    keys = (const unsigned short *)key_map2;
+//  }
+//  else {
+//    keys = (const unsigned short *)key_map1;
+//  }
+//  if (keymatrix_hitrow >=0 ) {
+//    unsigned short match = ((unsigned short)keymatrix_hitrow<<8) | keymatrix[keymatrix_hitrow];
+//    for (int i=0; i<sizeof(matkeys)/sizeof(unsigned short); i++) {
+//      if (match == matkeys[i]) {
+//        hundred_ms_cnt = 0;
+//        return (keys[i]);
+//      }
+//    }
+//  }
 #endif
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   if (!menuOn) {
@@ -938,8 +944,8 @@ int emu_setKeymap(int index) {
 ********************************/ 
 #include "ff.h"
 static FATFS fatfs;
-static FIL file; 
-// extern "C" int sd_init_driver(void);
+static FIL file;
+//extern "C" int sd_init_driver(void);  //this calls SDCARD.C to init the driver
 
 static int readNbFiles(char * rootdir) {
   int totalFiles = 0;
@@ -952,7 +958,9 @@ static int readNbFiles(char * rootdir) {
       // no more files
       break;
     }
-    char * filename = entry.fname;   
+    char * filename = entry.fname;
+
+
     if ( !(entry.fattrib & AM_DIR) ) {
       if (strcmp(filename,AUTORUN_FILENAME)) {
         strncpy(&files[totalFiles][0], filename, MAX_FILENAME_SIZE-1);
@@ -1131,19 +1139,39 @@ int emu_FileOpen(const char * filepath, const char * mode)
 
   emu_printf("FileOpen...");
   emu_printf(filepath);
-  if( !(f_open(&file, filepath, FA_READ)) ) {
-    retval = 1;  
+
+  auto dir = new DIR();
+  f_opendir(dir, "/" ROMSDIR);
+
+  int result = f_open(&file, filepath, FA_READ);
+
+  if(result == FR_OK) {
+    retval = 1;
+
   }
   else {
     emu_printf("FileOpen failed");
   }
+
+  f_closedir(dir);
+  emu_Free(dir);
   return (retval);
 }
 
-int emu_FileRead(void * buf, int size, int handler)
+int emu_FileRead(void * buf, int size)
 {
-  unsigned int retval=0; 
+  unsigned int retval=0;
+
+  auto dir = new DIR();
+  f_opendir(dir, "/" ROMSDIR);
+
   f_read (&file, (void*)buf, size, &retval);
+  if(retval != FR_OK) {
+      printf("FileRead failed");
+  }
+
+  f_closedir(dir);
+  emu_Free(dir);
   return retval; 
 }
 
@@ -1151,6 +1179,7 @@ int emu_FileGetc(int handler)
 {
   unsigned char c;
   unsigned int retval=0;
+
   if( !(f_read (&file, &c, 1, &retval)) )
   if (retval != 1) {
     emu_printf("emu_FileGetc failed");
@@ -1175,38 +1204,85 @@ int emu_FileTell(int handler)
 }
 
 
-unsigned int emu_FileSize(const char * filepath)
+unsigned long long emu_FileSize(const char * filepath)
 {
-  int filesize=0;
+  unsigned long long filesize=0;
   emu_printf("FileSize...");
   emu_printf(filepath);
   FILINFO entry;
   f_stat(filepath, &entry);
-  filesize = entry.fsize; 
-  return(filesize);    
-}
-
-unsigned int emu_LoadFile(const char * filepath, void * buf, int size)
-{
-  int filesize = 0;
-    
-  emu_printf("LoadFile...");
-  emu_printf(filepath);
-  if( !(f_open(&file, filepath, FA_READ)) ) {
-    filesize = f_size(&file);
-    emu_printf(filesize);
-    if (size >= filesize)
-    {
-      unsigned int retval=0;
-      if( (f_read (&file, buf, filesize, &retval)) ) {
-        emu_printf("File read failed");        
-      }
-    }
-    f_close(&file);
-  }
- 
+  filesize = entry.fsize;
   return(filesize);
 }
+
+unsigned int emu_LoadFile(const char * filepath, void * buf, int size) {
+  int filesize = 0;
+
+  emu_printf("LoadFile...");
+  emu_printf(filepath);
+
+  FRESULT fr = f_mount(&fatfs, "", 1);
+
+  DIR dir;
+  FILINFO entry;
+  fr = f_findfirst(&dir, &entry, "", "*");
+
+//    emu_printi(fr);
+  while ( (fr == FR_OK) && (entry.fname[0]) ) {
+      char * filename = entry.fname;
+      if(strcmp(filepath, filename) == 0) {
+          // found the file, try to open it
+          if( (f_open(&file, filename, FA_READ)) == FR_OK ) {
+              filesize = f_size(&file);
+              emu_printf(filesize);
+              if (size >= filesize)
+              {
+                  unsigned int retval=0;
+                  if( (f_read (&file, buf, filesize, &retval)) ) {
+                      emu_printf("File read failed");
+                  }
+              }
+              f_close(&file);
+//              printf("Opened file %s\n", filename);
+          } else {
+              emu_printf("File open failed");
+          }
+      }
+
+      fr = f_findnext(&dir, &entry);
+  }
+  f_closedir(&dir);
+
+  f_unmount("");
+  return(filesize);
+}
+
+//unsigned int emu_LoadFile(const char * filepath, void * buf, int size)
+//{
+//  int filesize = 0;
+//
+//  emu_printf("LoadFile...");
+//  emu_printf(filepath);
+//
+//  if( !(f_open(&file, filepath, FA_READ)) ) {
+//
+//    filesize = f_size(&file);
+//    emu_printf(filesize);
+//    if (size >= filesize)
+//    {
+//      unsigned int retval=0;
+//      if( (f_read (&file, buf, filesize, &retval)) ) {
+//        emu_printf("File read failed");
+//      }
+//    }
+//    f_close(&file);
+//  } else {
+//    emu_printf("File open failed");
+//  }
+//
+//
+//  return(filesize);
+//}
 
 static FIL outfile; 
 
@@ -1242,8 +1318,10 @@ static bool emu_readConfig(void)
       }
     }  
     f_close(&outfile);   
-  }  
-  return retval; 
+  } else {
+    emu_printf("Config open failed");
+  }
+  return retval;
 }
 
 static bool emu_eraseConfig(void)
@@ -1261,18 +1339,18 @@ void emu_init(void)
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   tft.begin();
 #endif
-#if (!defined(PIMORONI))
-  sd_init_driver();
-#endif
+//  sd_init_driver();
 //  FRESULT fr = f_mount(&fatfs, "0:", 1);
-  FRESULT fr = f_mount(&fatfs, "", 1);
+//  FRESULT fr = f_mount(&fatfs, "", 1);
+//  if (fr != FR_OK) {
+//    emu_printf("SD init failed");
 
-  strcpy(selection,ROMSDIR);
-  nbFiles = readNbFiles(selection); 
+//  strcpy(selection,ROMSDIR);
+//  nbFiles = readNbFiles(selection);
+//
+//  emu_printf("SD initialized, files found: ");
+//  emu_printi(nbFiles);
 
-  emu_printf("SD initialized, files found: ");
-  emu_printi(nbFiles);
-  
   emu_InitJoysticks();
 #ifdef SWAP_JOYSTICK
   joySwapped = true;   
@@ -1281,6 +1359,7 @@ void emu_init(void)
 #endif  
 
   int keypressed = emu_ReadKeys();
+
 #ifdef PICOMPUTER
   // Flip screen if UP pressed
   if (keypressed & MASK_JOY2_UP)
@@ -1317,6 +1396,8 @@ void emu_init(void)
     }
   }  
   toggleMenu(true);
+
+
 }
 
 

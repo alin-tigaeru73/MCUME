@@ -10,12 +10,12 @@ bool Processor::step()
         const uint16_t addr = Z80_GET_ADDR(_pins);
         if (_pins & Z80_RD)
         {
-            uint8_t data = readZ80(addr);
+            const uint8_t data = readZ80(addr);
             Z80_SET_DATA(_pins, data);
         }
         else if (_pins & Z80_WR)
         {
-            uint8_t data = Z80_GET_DATA(_pins);
+            const uint8_t data = Z80_GET_DATA(_pins);
             writeZ80(addr, data);
         }
     }
@@ -32,12 +32,13 @@ bool Processor::step()
         else if (_pins & Z80_RD)
         {
             // handle IO input request at port
-            inZ80(port);
+            uint8_t data = inZ80(port);
+            Z80_SET_DATA(_pins, data);
         }
         else if (_pins & Z80_WR)
         {
             // handle IO output request at port
-            uint8_t data = Z80_GET_DATA(_pins);
+            const uint8_t data = Z80_GET_DATA(_pins);
             outZ80(port, data);
         }
     }
@@ -45,29 +46,30 @@ bool Processor::step()
     return interruptAcknowledged;
 }
 
-uint8_t Processor::readZ80(uint16_t addr)
+uint8_t Processor::readZ80(const uint16_t addr) const
 {
     return _bus->readMemory(addr);
 }
 
-void Processor::writeZ80(uint16_t addr, uint8_t value)
+void Processor::writeZ80(const uint16_t addr, const uint8_t value) const
 {
     _bus->writeMemory(addr, value);
 }
 
-void Processor::outZ80(uint16_t port, uint8_t value)
+void Processor::outZ80(const uint16_t port, const uint8_t value) const
 {
     if(!(port & 0x8000)) _bus->writeGA(value);
     if(!(port & 0x4000)) _bus->writeCRTC(port, value);
-    if((port & 0xDF00) == 0xDF00) _bus->selectROMNumber(value);
+    if(!(port & 0x0800)) _bus->writePPI(port, value);
+    // if((port & 0xFF00) == 0xDF00) _bus->selectROMNumber(value);
 }
 
-uint8_t Processor::inZ80(uint16_t port)
+uint8_t Processor::inZ80(const uint16_t port) const
 {
     if(!(port & 0x4000)) return _bus->readCRTC(port);
+    if(!(port & 0x0800)) return _bus->readPPI(port);
 
-    // TODO default return value
-    return 0;
+//     TODO default return value
 }
 
 void Processor::assertWait()

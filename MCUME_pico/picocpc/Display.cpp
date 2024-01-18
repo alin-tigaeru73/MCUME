@@ -1,7 +1,7 @@
 #include "Display.h"
 #include "Bus.h"
 
-const struct Display::RGB Display::firmware_palette[27] = {
+const Display::RGB Display::firmware_palette[27] = {
         {0, 0, 0}, // 0
         {0, 0, 128}, // 1
         {0, 0, 255}, // 2
@@ -66,7 +66,7 @@ const uint8_t Display::hardware_colours[32] = {
         14
 };
 
-void Display::Display::populateBitstream(uint8_t pixel)
+void Display::Display::populateBitstream(const uint8_t pixel)
 {
     _x = _position % WIDTH;
 
@@ -87,13 +87,12 @@ void Display::Display::populateBitstream(uint8_t pixel)
     }
 }
 
-
 void Display::Display::drawVSync()
 {
     emu_DrawVsync();
 }
 
-void Display::Display::drawScanLine()
+void Display::Display::drawScanLine() const
 {
     emu_DrawLine16(_bitstream, WIDTH, HEIGHT, _y);
 }

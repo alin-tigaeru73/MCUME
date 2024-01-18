@@ -1,0 +1,7 @@
+MCUME_pico/cmake-build-debug/*
+MCUME_pico/.idea
+MCUME_pico/.vs
+MCUME_pico/.vscode
+MCUME_pico/picocpc/roms/*
+.idea
+.vscode

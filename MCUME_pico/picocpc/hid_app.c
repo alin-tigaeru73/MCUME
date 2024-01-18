@@ -37,7 +37,6 @@
 
 #define MAX_REPORT  4
 
-static uint8_t const keycode2ascii[128][2] =  { HID_KEYCODE_TO_ASCII };
 
 // Each HID instance can has multiple reports
 static struct
@@ -69,7 +68,7 @@ void tuh_hid_mount_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* desc_re
   printf("HID device address = %d, instance = %d is mounted\r\n", dev_addr, instance);
 
   // Interface protocol (hid_interface_protocol_enum_t)
-  const char* protocol_str[] = { "None", "Keyboard", "Mouse" };
+  const char* protocol_str[] = { "None", "KeyMapper", "Mouse" };
   uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
 
   printf("HID Interface Protocol = %s\r\n", protocol_str[itf_protocol]);
@@ -127,7 +126,7 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
 }
 
 //--------------------------------------------------------------------+
-// Keyboard
+// KeyMapper
 //--------------------------------------------------------------------+
 
 // look up new key in previous keys
@@ -157,21 +156,12 @@ static void process_kbd_report(hid_keyboard_report_t const *report)
       {
         // not existed in previous report means the current key is pressed
         bool const is_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
-        uint8_t ch = keycode2ascii[report->keycode[i]][is_shift ? 1 : 0];
-        if(ch != 0) {
-          emu_ForwardKeyChar(ch);
-        } else {
-          // Just forward the HID keycode if it's ASCII conversion does not yield anything, probably a control character
-          emu_ForwardKeyChar(report->keycode[i]);
-        }
+        bool const is_ctrl  = report->modifier & (KEYBOARD_MODIFIER_LEFTCTRL  | KEYBOARD_MODIFIER_RIGHTCTRL);
+        emu_ForwardKeycode(report->keycode[i], is_shift, is_ctrl);
         board_led_write(led_state);
         led_state = !led_state;
-        if ( ch == '\r' ) emu_ForwardKeyChar('\n'); // added new line for enter key
 
         fflush(stdout); // flush right away, else nanolib will wait for newline
-
-
-
       }
     }
     // TODO example skips key released
@@ -279,7 +269,7 @@ static void process_generic_report(uint8_t dev_addr, uint8_t instance, uint8_t c
   }
 
   // For complete list of Usage Page & Usage checkout src/class/hid/hid.h. For examples:
-  // - Keyboard                     : Desktop, Keyboard
+  // - KeyMapper                     : Desktop, KeyMapper
   // - Mouse                        : Desktop, Mouse
   // - Gamepad                      : Desktop, Gamepad
   // - Consumer Control (Media Key) : Consumer, Consumer Control

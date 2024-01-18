@@ -12,7 +12,7 @@
 //#define PICORETROVGA   1
 //#define MCUME_REV1      1
 //#define MCUME_REV2      1
-#define PIMORONI         1
+#define PIMORONI        1
 
 #ifdef PIMORONI
 #define USB_KBD        1
