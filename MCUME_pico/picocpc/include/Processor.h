@@ -9,8 +9,7 @@
 
 class Bus;
 
-class Processor
-{
+class Processor {
 private:
     uint64_t _pins{};
     z80_t _cpu{};
@@ -18,9 +17,7 @@ private:
 public:
     explicit Processor(Bus* bus)
         : _pins(z80_init(&_cpu)),
-          _bus(bus)
-    {
-    };
+          _bus(bus) {};
     [[nodiscard]] uint8_t readZ80(uint16_t addr) const;
     void writeZ80(uint16_t addr, uint8_t value) const;
     void outZ80(uint16_t port, uint8_t value) const;

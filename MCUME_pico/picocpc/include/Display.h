@@ -14,11 +14,11 @@ extern "C" {
 
 class Bus;
 
-namespace Display
-{
+namespace Display {
     constexpr uint16_t WIDTH = 320;
     constexpr uint16_t HEIGHT = 200;
     constexpr int bitstreamSize = WIDTH * 2; // 2 bytes per pixel (16-bit colours)
+
 
     struct RGB {
         int R, G, B;
@@ -39,9 +39,7 @@ namespace Display
                   _position(0),
                   _x(0),
                   _y(0),
-                  _bitstream(static_cast<unsigned short *>(emu_Malloc(bitstreamSize)))
-        {
-        };
+                  _bitstream(static_cast<unsigned short *>(emu_Malloc(bitstreamSize))) {};
         void populateBitstream(uint8_t pixel);
         static void drawVSync();
         void drawScanLine() const;

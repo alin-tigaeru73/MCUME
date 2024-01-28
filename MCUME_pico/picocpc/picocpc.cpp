@@ -19,6 +19,7 @@ extern "C" {
 #endif
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+int frameCount = 0;
 
 extern "C" void hid_app_task(void);
 
@@ -42,13 +43,20 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 
     uint16_t bClick = emu_ReadKeys();
     emu_Input(bClick);
-    if (vbl) {
-        vbl = false;
-    } else {
-        vbl = true;
-    }   
+//    if (vbl) {
+//        vbl = false;
+//    } else {
+//        vbl = true;
+//    }
+    vbl = !vbl;
     return true;
 }
+
+bool fps_callback(struct repeating_timer *t) {
+    printf("frames per second: %d\n", frameCount);
+    return true;
+}
+
 TFT_T_DMA tft;
 
 static int skip=0;
@@ -108,7 +116,8 @@ int main(void) {
               tft.startDMA(); 
               struct repeating_timer timer{};
               add_repeating_timer_ms(5, repeating_timer_callback, nullptr, &timer);
-            }  
+//              add_repeating_timer_ms(1000, fps_callback, nullptr, &timer);
+            }
             tft.waitSync();
         }
         else {
@@ -134,12 +143,13 @@ void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int 
 
 void emu_DrawVsync(void)
 {
+    frameCount = (frameCount + 1) % 50;
     skip += 1;
     skip &= VID_FRAME_SKIP;
     volatile bool vb=vbl; 
-    while (vbl==vb) {};
+//    while (vbl==vb) {};
 #ifdef USE_VGA   
-   // tft.waitSync();                   
+//    tft.waitSync();
 #else                      
 //    volatile bool vb=vbl; 
 //    while (vbl==vb) {};
@@ -183,7 +193,16 @@ void emu_DrawScreen(unsigned char * VBuf, int width, int height, int stride)
         tft.writeScreen(width,height-TFT_VBUFFER_YCROP,stride, VBuf+(TFT_VBUFFER_YCROP/2)*stride, palette8);
 #endif
     }
-}  
+}
+
+void emu_DrawScreen16(unsigned short * VBuf, int width, int height, int stride)
+{
+    if (skip == 0) {
+#ifdef USE_VGA
+        tft.writeScreen16(width,height-TFT_VBUFFER_YCROP,stride, VBuf+(TFT_VBUFFER_YCROP/2)*stride, palette16);
+#endif
+    }
+}
 
 int emu_FrameSkip(void)
 {

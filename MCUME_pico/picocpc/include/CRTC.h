@@ -6,10 +6,9 @@
 #include "pico/stdlib.h"
 #endif
 
-
 class Bus;
-class CRTC
-{
+
+class CRTC {
 private:
     Bus* _bus;
     uint8_t _registers[16] = {
@@ -46,9 +45,7 @@ public:
         _charLineCounter(0),
         _scanlineCounter(0),
         _verticalAdjustCounter(0),
-        _microsecondCounter(0)
-    {
-    };
+        _microsecondCounter(0) {};
     [[nodiscard]] bool isHSyncActive() const;
     [[nodiscard]] bool isVSyncActive() const;
     [[nodiscard]] bool isWithinDisplay() const;

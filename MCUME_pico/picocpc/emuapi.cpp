@@ -167,10 +167,7 @@ void emu_Free(void * pt)
   free(pt);
 }
 
-void emu_drawText(unsigned short x, unsigned short y, const char * text, unsigned short fgcolor, unsigned short bgcolor, int doublesize)
-{
-  tft.drawText(x, y, text, fgcolor, bgcolor, doublesize?true:false);
-}
+
 
 
 /********************************

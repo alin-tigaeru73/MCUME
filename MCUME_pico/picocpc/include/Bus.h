@@ -20,8 +20,7 @@ extern "C" {
 }
 
 
-class Bus
-{
+class Bus {
 private:
     std::unique_ptr<Processor> _processor;
     std::unique_ptr<Memory> _memory;
@@ -44,8 +43,7 @@ public:
         _ppi(std::make_unique<PPI::PPI>(this)),
         _ay(new AY8910()),
         _vsyncWait(true),
-        _hsyncWait(true)
-    {
+        _hsyncWait(true) {
         // For the C connector.
         setBusInstance(this);
     }

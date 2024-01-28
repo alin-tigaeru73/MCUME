@@ -15,8 +15,7 @@ extern "C" {
 
 class Bus;
 
-class Memory
-{
+class Memory {
 private:
     Bus* _bus;
     uint8_t _ram[0x10000]{};               // 64k
@@ -24,8 +23,7 @@ private:
     std::array<char, 16384> _upperRom{};  // 16k
 public:
     explicit Memory(Bus* bus)
-        : _bus(bus)
-    {
+        : _bus(bus) {
         memset(_ram, 0, sizeof(_ram));
         memset(_lowerRom.data(), 0, sizeof(_lowerRom));
         memset(_upperRom.data(), 0, sizeof(_upperRom));

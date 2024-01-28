@@ -9,8 +9,7 @@
 
 class Bus;
 
-namespace KeyManager
-{
+namespace KeyManager {
     inline std::unordered_map<uint8_t , uint8_t> hidToFKC = {
         {0x52, 0x00}, // Key_CursorUp
         {0x4F, 0x01}, // Key_CursorRight
@@ -80,16 +79,15 @@ namespace KeyManager
         {0x39, 0x46}, // Key_CapsLock
         {0x1D, 0x47}, // Key_Z
         {0x2A, 0x4F}  // Key_Del
+        // TODO backspace?
     };
 
-    class KeyManager
-    {
+    class KeyManager {
     private:
         Bus* _bus;
 		std::array<uint8_t, 10> _lines{};
     public:
-        explicit KeyManager(Bus* bus) : _bus(bus)
-        {
+        explicit KeyManager(Bus* bus) : _bus(bus) {
             _lines.fill(255);
         }
 
@@ -97,7 +95,7 @@ namespace KeyManager
         void setKeyPressed(uint8_t fkc);
         void setKeyLineReleased(uint8_t fkc);
         [[nodiscard]] uint8_t getLine(uint8_t line) const;
-        bool existsInMap(uint16_t hidKey) const;
+        [[nodiscard]] bool existsInMap(uint16_t hidKey) const;
     };
 
 

@@ -1,7 +1,3 @@
-//
-// Created by alint on 02/12/2023.
-//
-
 #ifndef BUSCCONNECTOR_H
 #define BUSCCONNECTOR_H
 

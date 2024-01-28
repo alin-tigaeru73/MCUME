@@ -6,17 +6,14 @@
 
 #include "roms/rom464.h"
 
-uint8_t Memory::read(const uint16_t addr) const
-{
+uint8_t Memory::read(const uint16_t addr) const {
 
-    if(addr <= LOWER_ROM_END && _bus->isLowRomEnabled())
-    {
+    if(addr <= LOWER_ROM_END && _bus->isLowRomEnabled()) {
 //        return _lowerRom[addr];
         return gb_rom_464_0[addr];
     }
 
-    if(addr >= UPPER_ROM_BEGIN && _bus->isHighRomEnabled())
-    {
+    if(addr >= UPPER_ROM_BEGIN && _bus->isHighRomEnabled()) {
 //        return _upperRom[addr - UPPER_ROM_BEGIN];
         return gb_rom_464_1[addr - UPPER_ROM_BEGIN];
     }
@@ -24,8 +21,7 @@ uint8_t Memory::read(const uint16_t addr) const
     return _ram[addr];
 }
 
-void Memory::write(const uint16_t addr, const uint8_t value)
-{
+void Memory::write(const uint16_t addr, const uint8_t value) {
     _ram[addr] = value;
 }
 

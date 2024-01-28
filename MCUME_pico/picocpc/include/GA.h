@@ -2,15 +2,15 @@
 #define GA_H
 
 #ifndef PICO_H_
+
+#include <array>
 #include "pico.h"
 #include "pico/stdlib.h"
 #endif
 
-
 class Bus;
 
-class GateArray
-{
+class GateArray {
 private:
     Bus* _bus;
     uint8_t _penSelected{};
@@ -25,6 +25,7 @@ private:
     bool _currentHSync{};
     bool _currentVSync{};
     uint8_t _microsecondCounter{};
+    std::array<uint8_t, 8>* _pixelBuffer{};
 public:
     explicit GateArray(Bus* bus)
             : _bus(bus),
@@ -38,8 +39,8 @@ public:
               _waitSignal(false),
               _currentHSync(false),
               _currentVSync(false),
-              _microsecondCounter(0)
-    {
+              _microsecondCounter(0) {
+
         _penColours = new uint8_t[_penNumber];
     };
     ~GateArray() = default;

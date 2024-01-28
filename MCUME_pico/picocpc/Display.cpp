@@ -66,33 +66,29 @@ const uint8_t Display::hardware_colours[32] = {
         14
 };
 
-void Display::Display::populateBitstream(const uint8_t pixel)
-{
+void Display::Display::populateBitstream(const uint8_t pixel) {
     _x = _position % WIDTH;
 
     _bitstream[_x] = VGA_RGB(firmware_palette[hardware_colours[pixel]].R,
-                                       firmware_palette[hardware_colours[pixel]].G,
-                                       firmware_palette[hardware_colours[pixel]].B);
+                               firmware_palette[hardware_colours[pixel]].G,
+                               firmware_palette[hardware_colours[pixel]].B);
     _position++;
-    if(_position == WIDTH)
-    {
+    if(_position == WIDTH) {
         _y++;
         _position = 0;
         _bus->setHSyncWait(true);
     }
-    if(_y == HEIGHT)
-    {
+    if(_y == HEIGHT) {
         _y = 0;
         _bus->setVSyncWait(true);
     }
 }
 
-void Display::Display::drawVSync()
-{
+void Display::Display::drawVSync() {
+//    emu_DrawScreen16(_bitstream, WIDTH, HEIGHT, WIDTH);
     emu_DrawVsync();
 }
 
-void Display::Display::drawScanLine() const
-{
+void Display::Display::drawScanLine() const {
     emu_DrawLine16(_bitstream, WIDTH, HEIGHT, _y);
 }
