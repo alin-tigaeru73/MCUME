@@ -37,20 +37,20 @@ void CRTC::step() {
     if(_microsecondCounter == 3) {
         ++_horizontalCounter;
 
-        if(_horizontalCounter >= _registers[0]) {
+        if(_horizontalCounter > _registers[0]) {
             // horizontal counter is equal to the Horizontal Total Register.
             _horizontalCounter = 0;
             ++_scanlineCounter;
         }
 
-        if(_scanlineCounter >= _registers[9]) {
+        if(_scanlineCounter > _registers[9]) {
             // The counter for Maximum Raster Address is equal to it.
             // The height of a character is 8 rasters, so when we reach 8 rasters we increment the char line count.
             _scanlineCounter = 0;
             ++_charLineCounter;
         }
 
-        if(_charLineCounter >= _registers[4]) {
+        if(_charLineCounter > _registers[4]) {
             // The vertical counter reaches the Vertical Total register.
             _charLineCounter = 0;
         }

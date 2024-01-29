@@ -43,17 +43,11 @@ bool repeating_timer_callback(struct repeating_timer *t) {
 
     uint16_t bClick = emu_ReadKeys();
     emu_Input(bClick);
-//    if (vbl) {
-//        vbl = false;
-//    } else {
-//        vbl = true;
-//    }
-    vbl = !vbl;
-    return true;
-}
-
-bool fps_callback(struct repeating_timer *t) {
-    printf("frames per second: %d\n", frameCount);
+    if (vbl) {
+        vbl = false;
+    } else {
+        vbl = true;
+    }
     return true;
 }
 
@@ -116,7 +110,6 @@ int main(void) {
               tft.startDMA(); 
               struct repeating_timer timer{};
               add_repeating_timer_ms(5, repeating_timer_callback, nullptr, &timer);
-//              add_repeating_timer_ms(1000, fps_callback, nullptr, &timer);
             }
             tft.waitSync();
         }
@@ -143,11 +136,11 @@ void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int 
 
 void emu_DrawVsync(void)
 {
-    frameCount = (frameCount + 1) % 50;
+//    frameCount = (frameCount + 1) % 50;
     skip += 1;
     skip &= VID_FRAME_SKIP;
     volatile bool vb=vbl; 
-//    while (vbl==vb) {};
+    while (vbl==vb) {};
 #ifdef USE_VGA   
 //    tft.waitSync();
 #else                      

@@ -18,26 +18,26 @@ bool GateArray::updateInterrupts() {
         }
     }
 
-    if(_currentVSync && !_bus->isVSyncActive()) {
+    if(_bus->isVSyncActive() && !_currentVSync) {
         // A VSYNC triggers a delay action of 2 HSYNCs in the GA, at the
         // completion of which the scan line count in the GA is compared to 32.
-        if(_delayVSyncCounter == 2) {
-            interruptGenerated = _interruptCounter < 32;
-            _interruptCounter = 0;
-        }
-
         _delayVSyncCounter = 0;
+    }
+
+    if(_delayVSyncCounter == 2) {
+        interruptGenerated = _interruptCounter < 32;
+        _interruptCounter = 0;
     }
 
     return interruptGenerated;
 }
 
 void GateArray::generatePixelData() const {
-    if(!_currentHSync && _bus->isHSyncActive()) {
+    if(_bus->isHSyncActive() && !_currentHSync) {
         _bus->setHSyncWait(false);
     }
 
-    if(!_currentVSync && _bus->isVSyncActive()) {
+    if(_bus->isVSyncActive() && !_currentVSync) {
         _bus->setVSyncWait(false);
     }
 
@@ -60,7 +60,7 @@ void GateArray::generatePixelData() const {
                                     (encodedByte & 0x01) << 3);
 
                 for(int j = 0; j < 2; ++j) {
-                    _bus->draw(_penColours[_pixelBuffer->at(i)]);
+                    _bus->draw(_penColours[_pixelBuffer->at(j)]);
                 }
                 break;
             case 1:
@@ -73,7 +73,7 @@ void GateArray::generatePixelData() const {
                 _pixelBuffer->at(3) = ((encodedByte & 0x10) >> 4 |
                                  (encodedByte & 0x01) << 1);
                 for(int j = 0; j < 4; ++j) {
-                    _bus->draw(_penColours[_pixelBuffer->at(i)]);
+                    _bus->draw(_penColours[_pixelBuffer->at(j)]);
                 }
                 break;
             case 2:
@@ -83,7 +83,6 @@ void GateArray::generatePixelData() const {
                 }
                 break;
         }
-
     }
 }
 

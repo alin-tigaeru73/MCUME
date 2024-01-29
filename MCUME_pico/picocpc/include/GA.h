@@ -42,6 +42,7 @@ public:
               _microsecondCounter(0) {
 
         _penColours = new uint8_t[_penNumber];
+        _pixelBuffer = new std::array<uint8_t, 8>;
     };
     ~GateArray() = default;
     bool updateInterrupts();

@@ -73,7 +73,7 @@ void Display::Display::populateBitstream(const uint8_t pixel) {
                                firmware_palette[hardware_colours[pixel]].G,
                                firmware_palette[hardware_colours[pixel]].B);
     _position++;
-    if(_position == WIDTH) {
+    if(_position == WIDTH ) {
         _y++;
         _position = 0;
         _bus->setHSyncWait(true);
