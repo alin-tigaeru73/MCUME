@@ -20,36 +20,44 @@
 // TFT
 #define TFT_SPIREG      spi1
 #define TFT_SPIDREQ     DREQ_SPI1_TX
-#define TFT_SCLK        14
-#define TFT_MOSI        15
-#define TFT_MISO        12
-#define TFT_DC          28
-#define TFT_CS          13  // 255 for LORES ST7789 (NO CS)
-#define TFT_RST         255 // 255 for ILI/ST if connected to 3.3V
+#define TFT_CS          17 //13  // 255 for LORES ST7789 (NO CS)
+#define TFT_RST         14 //255 // 255 for ILI/ST if connected to 3.3V
+#define TFT_DC          15 //28
+#define TFT_MOSI        19 //15
+#define TFT_SCLK        18 //14
+#define TFT_MISO        16 //12
 #define TFT_BACKLIGHT   255 // hardwired to 3.3v
 
 // SD (see SPI0 in code!!!)
+/*
 #define SD_SPIREG       spi0
-#define SD_SCLK         18
-#define SD_MOSI         19
-#define SD_MISO         16
-#define SD_CS           17
-#define SD_DETECT       255 // 22
+#define SD_SCLK         5  //
+#define SD_DETECT       255 //not provided
+#define SD_MOSI         18 //?
+#define SD_MISO         19 //? 
+#define SD_CS           22 //
+*/
+#define SD_SPIREG       spi1
+#define SD_SCLK         5  //
+#define SD_DETECT       255 //not provided
+#define SD_MOSI         18 //
+#define SD_MISO         19 //
+#define SD_CS           22 //
 
 // Analog joystick (primary) for JOY2 and 3 extra buttons
 #define PIN_JOY2_A1X    26
 #define PIN_JOY2_A2Y    27
 #define PIN_JOY2_BTN    22
 #define PIN_KEY_USER1   20
-#define PIN_KEY_USER2   21
+#define PIN_KEY_USER2   21 
 
 // I2C keyboard (Not available on PICO)
 /*
-#define I2C_SCL_IO      15?
+#define I2C_SCL_IO      15? 
 #define I2C_SDA_IO      14?
 */
 
-#else
+#endif
 
 #ifdef PIMORONI
 
@@ -256,7 +264,5 @@
 //#define PIN_JOY1_2       7  // DOWN
 //#define PIN_JOY1_3       6  // RIGHT
 //#define PIN_JOY1_4       5  // LEFT
-
-#endif
 
 #endif

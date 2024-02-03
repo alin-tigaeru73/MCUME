@@ -10,36 +10,26 @@ extern "C" {
 
 auto bus = std::make_unique<Bus>();
 
-/**
- * Creates initial emulation state
-*/
-void cpc_Init(void)
-{
-    for(auto hardware_colour : Display::hardware_colours)
-    {
+void cpc_Init() {
+    for(const auto& hardware_colour : Display::hardware_colours) {
         emu_SetPaletteEntry(R16(Display::firmware_palette[hardware_colour].R),
                             G16(Display::firmware_palette[hardware_colour].G),
                             B16(Display::firmware_palette[hardware_colour].B),
                             hardware_colour);
     }
-
-
+//    bus->initialiseLowRom();
+//    bus->initialiseUpperRom();
 }
 
-/**
- * Steps through emulation
-*/
-void cpc_Step(void)
-{
+void cpc_Step() {
     bus->step();
 }
 
-void cpc_Input(int bClick)
-{
-
+void cpc_Input(const uint16_t bClick) {
+    // This receives the HID code for a key and whether shift and control were pressed.
+    bus->setKeyPressed(bClick);
 }
 
-void cpc_Start(char* filename)
-{
+void cpc_Start(char* filename) {
 
 }

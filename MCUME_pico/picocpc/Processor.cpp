@@ -1,43 +1,33 @@
 #include "Processor.h"
 #include "Bus.h"
 
-bool Processor::step()
-{
+bool Processor::step() {
     bool interruptAcknowledged = false;
     _pins = z80_tick(&_cpu, _pins);
-    if (_pins & Z80_MREQ)
-    {
+    if (_pins & Z80_MREQ) {
         const uint16_t addr = Z80_GET_ADDR(_pins);
-        if (_pins & Z80_RD)
-        {
-            uint8_t data = readZ80(addr);
+        if (_pins & Z80_RD) {
+            const uint8_t data = readZ80(addr);
             Z80_SET_DATA(_pins, data);
-        }
-        else if (_pins & Z80_WR)
-        {
-            uint8_t data = Z80_GET_DATA(_pins);
+        } else if (_pins & Z80_WR) {
+            const uint8_t data = Z80_GET_DATA(_pins);
             writeZ80(addr, data);
         }
     }
-    else if (_pins & Z80_IORQ)
-    {
+    else if (_pins & Z80_IORQ) {
         const uint16_t port = Z80_GET_ADDR(_pins);
-        if (_pins & Z80_M1)
-        {
+        if (_pins & Z80_M1) {
             // an interrupt acknowledge cycle, depending on the emulated system,
             // put either an instruction byte, or an interrupt vector on the data bus
             Z80_SET_DATA(_pins, 0x0038);
             interruptAcknowledged = true;
-        }
-        else if (_pins & Z80_RD)
-        {
+        } else if (_pins & Z80_RD) {
             // handle IO input request at port
-            inZ80(port);
-        }
-        else if (_pins & Z80_WR)
-        {
+            uint8_t data = inZ80(port);
+            Z80_SET_DATA(_pins, data);
+        } else if (_pins & Z80_WR) {
             // handle IO output request at port
-            uint8_t data = Z80_GET_DATA(_pins);
+            const uint8_t data = Z80_GET_DATA(_pins);
             outZ80(port, data);
         }
     }
@@ -45,47 +35,42 @@ bool Processor::step()
     return interruptAcknowledged;
 }
 
-uint8_t Processor::readZ80(uint16_t addr)
-{
+uint8_t Processor::readZ80(const uint16_t addr) const {
     return _bus->readMemory(addr);
 }
 
-void Processor::writeZ80(uint16_t addr, uint8_t value)
-{
+void Processor::writeZ80(const uint16_t addr, const uint8_t value) const {
     _bus->writeMemory(addr, value);
 }
 
-void Processor::outZ80(uint16_t port, uint8_t value)
-{
-    if(!(port & 0x8000)) _bus->writeGA(value);           // The Gate Array is selected when bit 15 is set to 0.
-    if(!(port & 0x4000)) _bus->writeCRTC(port, value); // The CRTC is selected when bit 14 is set to 0.
+void Processor::outZ80(const uint16_t port, const uint8_t value) const {
+    if(!(port & 0x8000)) _bus->writeGA(value);
+    if(!(port & 0x4000)) _bus->writeCRTC(port, value);
+    if(!(port & 0x0800)) _bus->writePPI(port, value);
+    // if((port & 0xFF00) == 0xDF00) _bus->selectROMNumber(value);
 }
 
-uint8_t Processor::inZ80(uint16_t port)
-{
-    if(!(port & 0x4000)) return _bus->readCRTC(port); // The CRTC is selected when bit 14 is set to 0.
+uint8_t Processor::inZ80(const uint16_t port) const {
+    if(!(port & 0x4000)) return _bus->readCRTC(port);
+    if(!(port & 0x0800)) return _bus->readPPI(port);
 
-    // TODO default return value
+//     TODO default return value
     return 0;
 }
 
-void Processor::assertWait()
-{
+void Processor::assertWait() {
     _pins = _pins | Z80_WAIT;
 }
 
-void Processor::clearWait()
-{
+void Processor::clearWait() {
     _pins = _pins & ~Z80_WAIT;
 }
 
-void Processor::requestInterrupt()
-{
+void Processor::requestInterrupt() {
     _pins = _pins | Z80_INT;
 }
 
-void Processor::acknowledgeInterrupt()
-{
+void Processor::acknowledgeInterrupt() {
     _pins = _pins & ~Z80_INT;
 }
 

@@ -11,6 +11,7 @@
 extern "C" {
   #include "emuapi.h"
   #include "iopins.h"
+  #include "tusb.h"
 }
 
 static bool emu_writeConfig(void);
@@ -84,9 +85,12 @@ static uint16_t bLastState;
 static int xRef;
 static int yRef;
 static uint8_t usbnavpad=0;
+uint8_t usbKbdInput=0;
+static bool isShift;
+static bool isCtrl;
 
 static bool menuOn=true;
-static bool autorun=false;
+static bool autorun=true;
 
 
 /********************************
@@ -94,22 +98,26 @@ static bool autorun=false;
 ********************************/ 
 void emu_printf(const char * text)
 {
-  printf("%s\n",text);
+  printf("EMUAPI.CPP: %s\n",text);
+  fflush(stdout);
 }
 
 void emu_printf(int val)
 {
-  printf("%d\n",val);
+  printf("EMUAPI.CPP: %d\n",val);
+  fflush(stdout);
 }
 
 void emu_printi(int val)
 {
-  printf("%d\n",val);
+  printf("EMUAPI.CPP: %d\n",val);
+  fflush(stdout);
 }
 
 void emu_printh(int val)
 {
-  printf("0x%.8\n",val);
+  printf("EMUAPI.CPP: 0x%.8\n",val);
+  fflush(stdout);
 }
 
 static int malbufpt = 0;
@@ -159,10 +167,7 @@ void emu_Free(void * pt)
   free(pt);
 }
 
-void emu_drawText(unsigned short x, unsigned short y, const char * text, unsigned short fgcolor, unsigned short bgcolor, int doublesize)
-{
-  tft.drawText(x, y, text, fgcolor, bgcolor, doublesize?true:false);
-}
+
 
 
 /********************************
@@ -430,12 +435,24 @@ int emu_GetPad(void)
   return(bLastState/*|((joySwapped?1:0)<<7)*/);
 }
 
+void emu_ForwardKeycode(uint8_t key, bool is_shift, bool is_ctrl)
+{
+    usbKbdInput = key;
+    isShift = is_shift;
+    isCtrl = is_ctrl;
+}
+
 int emu_ReadKeys(void) 
 {
-  uint16_t retval;
+#ifdef USB_KBD
+    // Upper 8 bits are just the shift and ctrl status, lower 8 bits are the keycode pressed
+    return (((uint16_t) (isShift | (isCtrl << 1)) << 8)) | usbKbdInput;
+#else
+
+    uint16_t retval;
   uint16_t j1 = readAnalogJoystick();
   uint16_t j2 = 0;
-  
+
   // Second joystick
 #if INVY
 #ifdef PIN_JOY1_1
@@ -485,16 +502,16 @@ int emu_ReadKeys(void)
   if (usbnavpad & MASK_JOY2_RIGHT) retval |= MASK_JOY2_RIGHT;
   if (usbnavpad & MASK_JOY2_BTN) retval |= MASK_JOY2_BTN;
 
-#ifdef PIN_KEY_USER1 
+#ifdef PIN_KEY_USER1
   if ( !gpio_get(PIN_KEY_USER1) ) retval |= MASK_KEY_USER1;
 #endif
-#ifdef PIN_KEY_USER2 
+#ifdef PIN_KEY_USER2
   if ( !gpio_get(PIN_KEY_USER2) ) retval |= MASK_KEY_USER2;
 #endif
-#ifdef PIN_KEY_USER3 
+#ifdef PIN_KEY_USER3
   if ( !gpio_get(PIN_KEY_USER3) ) retval |= MASK_KEY_USER3;
 #endif
-#ifdef PIN_KEY_USER4 
+#ifdef PIN_KEY_USER4
   if ( !gpio_get(PIN_KEY_USER4) ) retval |= MASK_KEY_USER4;
 #endif
 
@@ -511,7 +528,7 @@ int emu_ReadKeys(void)
     sleep_us(1);
     //__asm volatile ("nop\n"); // 4-8ns
 #endif
-    row=0; 
+    row=0;
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
@@ -524,7 +541,7 @@ int emu_ReadKeys(void)
     //gpio_set_dir(cols[i], GPIO_OUT);
     gpio_put(cols[i], 1);
     gpio_set_dir(cols[i], GPIO_IN);
-    gpio_disable_pulls(cols[i]); 
+    gpio_disable_pulls(cols[i]);
     keymatrixtmp[i] = row;
   }
 
@@ -536,7 +553,7 @@ int emu_ReadKeys(void)
     sleep_us(1);
     //__asm volatile ("nop\n"); // 4-8ns
 #endif
-    row=0; 
+    row=0;
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
@@ -549,7 +566,7 @@ int emu_ReadKeys(void)
     //gpio_set_dir(cols[i], GPIO_OUT);
     gpio_put(cols[i], 1);
     gpio_set_dir(cols[i], GPIO_IN);
-    gpio_disable_pulls(cols[i]); 
+    gpio_disable_pulls(cols[i]);
     keymatrixtmp[i] |= row;
   }
 
@@ -560,7 +577,7 @@ int emu_ReadKeys(void)
     sleep_us(1);
     //__asm volatile ("nop\n"); // 4-8ns
 #endif
-    row=0; 
+    row=0;
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
     row |= (gpio_get(KROWIN2) ? 0 : 0x01);
@@ -573,13 +590,13 @@ int emu_ReadKeys(void)
     //gpio_set_dir(cols[i], GPIO_OUT);
     gpio_put(cols[i], 1);
     gpio_set_dir(cols[i], GPIO_IN);
-    gpio_disable_pulls(cols[i]); 
+    gpio_disable_pulls(cols[i]);
     keymatrixtmp[i] |= row;
   }
 #endif
-  
+
 #ifdef SWAP_ALT_DEL
-  // Swap ALT and DEL  
+  // Swap ALT and DEL
   unsigned char alt = keymatrixtmp[0] & 0x02;
   unsigned char del = keymatrixtmp[5] & 0x20;
   keymatrixtmp[0] &= ~0x02;
@@ -607,10 +624,10 @@ int emu_ReadKeys(void)
 #endif
 #if INVY
   if ( row & 0x8  ) retval |= MASK_JOY2_DOWN;
-  if ( row & 0x4  ) retval |= MASK_JOY2_UP;  
+  if ( row & 0x4  ) retval |= MASK_JOY2_UP;
 #else
   if ( row & 0x4  ) retval |= MASK_JOY2_DOWN;
-  if ( row & 0x8  ) retval |= MASK_JOY2_UP;  
+  if ( row & 0x8  ) retval |= MASK_JOY2_UP;
 #endif
   if ( row & 0x10 ) retval |= MASK_JOY2_BTN;
 
@@ -623,59 +640,59 @@ int emu_ReadKeys(void)
     }
     else {
       ledflash_toggle = false;
-    }  
-  }  
- 
+    }
+  }
+
   if ( alt_pressed ) {
-    if (key_fn == false) 
+    if (key_fn == false)
     {
       // Release to Press transition
       if (hundred_ms_cnt == 0) {
         keypress_t_ms=time_ms;
         hundred_ms_cnt += 1; // 1
-      }  
+      }
       else {
         hundred_ms_cnt += 1; // 2
-        if (hundred_ms_cnt >= 2) 
-        { 
+        if (hundred_ms_cnt >= 2)
+        {
           hundred_ms_cnt = 0;
-          /* 
-          if ( (time_ms-keypress_t_ms) < 500) 
+          /*
+          if ( (time_ms-keypress_t_ms) < 500)
           {
-            if (key_alt == false) 
+            if (key_alt == false)
             {
               key_alt = true;
             }
-            else 
+            else
             {
               key_alt = false;
-            } 
+            }
           }
           */
-        }        
+        }
       }
     }
     else {
       // Keep press
       if (hundred_ms_cnt == 1) {
-        if ((to_ms_since_boot (get_absolute_time())-keypress_t_ms) > 2000) 
+        if ((to_ms_since_boot (get_absolute_time())-keypress_t_ms) > 2000)
         {
-          if (key_alt == false) 
+          if (key_alt == false)
           {
             key_alt = true;
           }
-          else 
+          else
           {
             key_alt = false;
-          } 
-          hundred_ms_cnt = 0; 
+          }
+          hundred_ms_cnt = 0;
         }
-      } 
-    } 
+      }
+    }
     key_fn = true;
   }
   else  {
-    key_fn = false;    
+    key_fn = false;
   }
 
   // Handle LED
@@ -688,9 +705,9 @@ int emu_ReadKeys(void)
     }
     else {
       gpio_put(KLED, 0);
-    }     
-  } 
- 
+    }
+  }
+
   if ( key_fn ) retval |= MASK_KEY_USER2;
   if ( ( key_fn ) && (keymatrix[0] == 0x02 )) retval |= MASK_KEY_USER1;
 #endif
@@ -699,16 +716,17 @@ int emu_ReadKeys(void)
 
   if ( ((retval & (MASK_KEY_USER1+MASK_KEY_USER2)) == (MASK_KEY_USER1+MASK_KEY_USER2))
      || (retval & MASK_KEY_USER4 ) )
-  {  
+  {
   }
 
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   if (oskbOn) {
-    retval |= MASK_OSKB; 
-  }  
-#endif  
-  
+    retval |= MASK_OSKB;
+  }
+#endif
+
   return (retval);
+#endif
 }
 
 unsigned short emu_DebounceLocalKeys(void)
@@ -723,24 +741,24 @@ unsigned short emu_DebounceLocalKeys(void)
 int emu_ReadI2CKeyboard(void) {
   int retval=0;
 #ifdef PICOMPUTER
-  if (key_alt) {
-    keys = (const unsigned short *)key_map3;
-  }
-  else if (key_fn) {
-    keys = (const unsigned short *)key_map2;
-  }
-  else {
-    keys = (const unsigned short *)key_map1;
-  }
-  if (keymatrix_hitrow >=0 ) {
-    unsigned short match = ((unsigned short)keymatrix_hitrow<<8) | keymatrix[keymatrix_hitrow];  
-    for (int i=0; i<sizeof(matkeys)/sizeof(unsigned short); i++) {
-      if (match == matkeys[i]) {
-        hundred_ms_cnt = 0;    
-        return (keys[i]);
-      }
-    }
-  }
+//  if (key_alt) {
+//    keys = (const unsigned short *)key_map3;
+//  }
+//  else if (key_fn) {
+//    keys = (const unsigned short *)key_map2;
+//  }
+//  else {
+//    keys = (const unsigned short *)key_map1;
+//  }
+//  if (keymatrix_hitrow >=0 ) {
+//    unsigned short match = ((unsigned short)keymatrix_hitrow<<8) | keymatrix[keymatrix_hitrow];
+//    for (int i=0; i<sizeof(matkeys)/sizeof(unsigned short); i++) {
+//      if (match == matkeys[i]) {
+//        hundred_ms_cnt = 0;
+//        return (keys[i]);
+//      }
+//    }
+//  }
 #endif
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   if (!menuOn) {
@@ -923,8 +941,8 @@ int emu_setKeymap(int index) {
 ********************************/ 
 #include "ff.h"
 static FATFS fatfs;
-static FIL file; 
-extern "C" int sd_init_driver(void);
+static FIL file;
+//extern "C" int sd_init_driver(void);  //this calls SDCARD.C to init the driver
 
 static int readNbFiles(char * rootdir) {
   int totalFiles = 0;
@@ -937,7 +955,9 @@ static int readNbFiles(char * rootdir) {
       // no more files
       break;
     }
-    char * filename = entry.fname;   
+    char * filename = entry.fname;
+
+
     if ( !(entry.fattrib & AM_DIR) ) {
       if (strcmp(filename,AUTORUN_FILENAME)) {
         strncpy(&files[totalFiles][0], filename, MAX_FILENAME_SIZE-1);
@@ -1116,19 +1136,39 @@ int emu_FileOpen(const char * filepath, const char * mode)
 
   emu_printf("FileOpen...");
   emu_printf(filepath);
-  if( !(f_open(&file, filepath, FA_READ)) ) {
-    retval = 1;  
+
+  auto dir = new DIR();
+  f_opendir(dir, "/" ROMSDIR);
+
+  int result = f_open(&file, filepath, FA_READ);
+
+  if(result == FR_OK) {
+    retval = 1;
+
   }
   else {
     emu_printf("FileOpen failed");
   }
+
+  f_closedir(dir);
+  emu_Free(dir);
   return (retval);
 }
 
-int emu_FileRead(void * buf, int size, int handler)
+int emu_FileRead(void * buf, int size)
 {
-  unsigned int retval=0; 
+  unsigned int retval=0;
+
+  auto dir = new DIR();
+  f_opendir(dir, "/" ROMSDIR);
+
   f_read (&file, (void*)buf, size, &retval);
+  if(retval != FR_OK) {
+      printf("FileRead failed");
+  }
+
+  f_closedir(dir);
+  emu_Free(dir);
   return retval; 
 }
 
@@ -1136,6 +1176,7 @@ int emu_FileGetc(int handler)
 {
   unsigned char c;
   unsigned int retval=0;
+
   if( !(f_read (&file, &c, 1, &retval)) )
   if (retval != 1) {
     emu_printf("emu_FileGetc failed");
@@ -1160,38 +1201,85 @@ int emu_FileTell(int handler)
 }
 
 
-unsigned int emu_FileSize(const char * filepath)
+unsigned long long emu_FileSize(const char * filepath)
 {
-  int filesize=0;
+  unsigned long long filesize=0;
   emu_printf("FileSize...");
   emu_printf(filepath);
   FILINFO entry;
   f_stat(filepath, &entry);
-  filesize = entry.fsize; 
-  return(filesize);    
-}
-
-unsigned int emu_LoadFile(const char * filepath, void * buf, int size)
-{
-  int filesize = 0;
-    
-  emu_printf("LoadFile...");
-  emu_printf(filepath);
-  if( !(f_open(&file, filepath, FA_READ)) ) {
-    filesize = f_size(&file);
-    emu_printf(filesize);
-    if (size >= filesize)
-    {
-      unsigned int retval=0;
-      if( (f_read (&file, buf, filesize, &retval)) ) {
-        emu_printf("File read failed");        
-      }
-    }
-    f_close(&file);
-  }
- 
+  filesize = entry.fsize;
   return(filesize);
 }
+
+unsigned int emu_LoadFile(const char * filepath, void * buf, int size) {
+  int filesize = 0;
+
+  emu_printf("LoadFile...");
+  emu_printf(filepath);
+
+  FRESULT fr = f_mount(&fatfs, "", 1);
+
+  DIR dir;
+  FILINFO entry;
+  fr = f_findfirst(&dir, &entry, "", "*");
+
+//    emu_printi(fr);
+  while ( (fr == FR_OK) && (entry.fname[0]) ) {
+      char * filename = entry.fname;
+      if(strcmp(filepath, filename) == 0) {
+          // found the file, try to open it
+          if( (f_open(&file, filename, FA_READ)) == FR_OK ) {
+              filesize = f_size(&file);
+              emu_printf(filesize);
+              if (size >= filesize)
+              {
+                  unsigned int retval=0;
+                  if( (f_read (&file, buf, filesize, &retval)) ) {
+                      emu_printf("File read failed");
+                  }
+              }
+              f_close(&file);
+//              printf("Opened file %s\n", filename);
+          } else {
+              emu_printf("File open failed");
+          }
+      }
+
+      fr = f_findnext(&dir, &entry);
+  }
+  f_closedir(&dir);
+
+  f_unmount("");
+  return(filesize);
+}
+
+//unsigned int emu_LoadFile(const char * filepath, void * buf, int size)
+//{
+//  int filesize = 0;
+//
+//  emu_printf("LoadFile...");
+//  emu_printf(filepath);
+//
+//  if( !(f_open(&file, filepath, FA_READ)) ) {
+//
+//    filesize = f_size(&file);
+//    emu_printf(filesize);
+//    if (size >= filesize)
+//    {
+//      unsigned int retval=0;
+//      if( (f_read (&file, buf, filesize, &retval)) ) {
+//        emu_printf("File read failed");
+//      }
+//    }
+//    f_close(&file);
+//  } else {
+//    emu_printf("File open failed");
+//  }
+//
+//
+//  return(filesize);
+//}
 
 static FIL outfile; 
 
@@ -1227,8 +1315,10 @@ static bool emu_readConfig(void)
       }
     }  
     f_close(&outfile);   
-  }  
-  return retval; 
+  } else {
+    emu_printf("Config open failed");
+  }
+  return retval;
 }
 
 static bool emu_eraseConfig(void)
@@ -1246,17 +1336,18 @@ void emu_init(void)
 #if (defined(ILI9341) || defined(ST7789)) && defined(USE_VGA)
   tft.begin();
 #endif
-#if (!defined(PIMORONI))
-  sd_init_driver();
-#endif
-  FRESULT fr = f_mount(&fatfs, "0:", 1);    
+//  sd_init_driver();
+//  FRESULT fr = f_mount(&fatfs, "0:", 1);
+//  FRESULT fr = f_mount(&fatfs, "", 1);
+//  if (fr != FR_OK) {
+//    emu_printf("SD init failed");
 
-  strcpy(selection,ROMSDIR);
-  nbFiles = readNbFiles(selection); 
+//  strcpy(selection,ROMSDIR);
+//  nbFiles = readNbFiles(selection);
+//
+//  emu_printf("SD initialized, files found: ");
+//  emu_printi(nbFiles);
 
-  emu_printf("SD initialized, files found: ");
-  emu_printi(nbFiles);
-  
   emu_InitJoysticks();
 #ifdef SWAP_JOYSTICK
   joySwapped = true;   
@@ -1265,6 +1356,7 @@ void emu_init(void)
 #endif  
 
   int keypressed = emu_ReadKeys();
+
 #ifdef PICOMPUTER
   // Flip screen if UP pressed
   if (keypressed & MASK_JOY2_UP)
@@ -1301,6 +1393,8 @@ void emu_init(void)
     }
   }  
   toggleMenu(true);
+
+
 }
 
 
