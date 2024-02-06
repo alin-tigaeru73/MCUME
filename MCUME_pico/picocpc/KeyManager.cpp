@@ -1,19 +1,23 @@
 #include "KeyManager.h"
 
-uint8_t KeyManager::KeyManager::decodeKey(const uint16_t hidKey) {
+KeyManager::Key KeyManager::KeyManager::decodeKey(const uint16_t hidKey) {
     // Returns the FKC for the given HID key. From it we can get the line and bit by doing div and mod by 8.
     bool isShiftPressed = (hidKey >> 8) & 1;
     bool isCtrlPressed = (hidKey >> 9) & 1;
 
     // TODO for now this just returns the FKC, but it should consider control keys.
-    return hidToFKC.at(hidKey & 0xFF);
+
+    return {isShiftPressed, isCtrlPressed, hidToFKC.at(hidKey & 0xFF)};
 }
 
-void KeyManager::KeyManager::setKeyPressed(const uint8_t fkc) {
-    const uint8_t line = fkc / 8;
-    const uint8_t bit = fkc % 8;
+void KeyManager::KeyManager::setKeyPressed(Key key) {
+    const uint8_t line = key.fkc / 8;
+    const uint8_t bit = key.fkc % 8;
 
     // Clear the "bit"-th bit of the "line"-th line.
+    if(key.is_shifted) _lines.at(2) &= ~(1 << 5);
+    if(key.is_ctrl) _lines.at(2) &= ~(1 << 7);
+
     _lines.at(line) &= ~(1 << bit);
 }
 

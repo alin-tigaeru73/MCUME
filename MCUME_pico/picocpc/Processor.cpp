@@ -66,8 +66,14 @@ void Processor::clearWait() {
     _pins = _pins & ~Z80_WAIT;
 }
 
+// For the USB keyboard.
+extern "C" {
+#include "tusb.h"
+}
 void Processor::requestInterrupt() {
     _pins = _pins | Z80_INT;
+
+    tuh_task();
 }
 
 void Processor::acknowledgeInterrupt() {

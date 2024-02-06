@@ -17,6 +17,12 @@ extern "C" {
 #else
 #include "tft_t_dma.h"
 #endif
+
+#ifdef HAS_SND
+#include "include.h"
+#include "pwmsnd.h"
+#endif
+
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 int frameCount = 0;
@@ -70,33 +76,22 @@ int main(void) {
 //    set_sys_clock_khz(250000, true);
 
     board_init();
-//
-//    // init host stack on configured roothub port
     tuh_init(BOARD_TUH_RHPORT);
-
     stdio_init_all();
-
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-
-    //flash 2 times 5 seconds gap, allows stdio_init_all to finish
-//    board_led_on();
-//    sleep_ms(1000);
-//    board_led_off();
-    sleep_ms(3000);
-//    board_led_on();
-//    sleep_ms(1000);
-//    board_led_off();
-
+    sleep_ms(2000);
     tusb_init();
+    hid_app_task();
 #ifdef USE_VGA    
     tft.begin(VGA_MODE_320x240);
 #else
     tft.begin();
 #endif
-
+#ifdef HAS_SND
+    PWMSndInit();
+#endif
     emu_init();
-
     while (true) {
         if (menuActive()) {
             uint16_t bClick = emu_DebounceLocalKeys();
@@ -114,9 +109,6 @@ int main(void) {
             tft.waitSync();
         }
         else {
-            // For the USB keyboard
-            tuh_task();
-            hid_app_task();
             emu_Step();
         }
     }

@@ -33,6 +33,10 @@ static TFT_T_DMA tft;
 extern TFT_T_DMA tft;
 #endif
 
+#ifdef HAS_SND
+#include "include.h"
+#include "pwmsnd.h"
+#endif
 
 #define MAX_FILENAME_PATH   64
 #define NB_FILE_HANDLER     4
@@ -440,6 +444,15 @@ void emu_ForwardKeycode(uint8_t key, bool is_shift, bool is_ctrl)
     usbKbdInput = key;
     isShift = is_shift;
     isCtrl = is_ctrl;
+}
+
+void emu_sndPlaySound(int chan, int volume, int freq)
+{
+  // TODO Not implemented, this needs to call PlaySound somehow
+  //      need a sound buffer, len, rep and speed can stay at default
+  //      //  snd = pointer to sound
+  //      //  len = length of sound in number of samples
+  // PlaySound(const u8* snd, int len, False, 1.0f);
 }
 
 int emu_ReadKeys(void) 

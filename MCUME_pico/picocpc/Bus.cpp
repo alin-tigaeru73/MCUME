@@ -124,8 +124,8 @@ void Bus::selectPSGRegister(const uint8_t value) const {
 
 void Bus::setKeyPressed(const uint16_t hidKey) const {
     if(!_keyManager->existsInMap(hidKey)) return;
-    const uint8_t fkc = _keyManager->decodeKey(hidKey);
-    _keyManager->setKeyPressed(fkc);
+    const KeyManager::Key key = _keyManager->decodeKey(hidKey);
+    _keyManager->setKeyPressed(key);
 }
 
 void Bus::setKeyLineReleased(const uint8_t line) {

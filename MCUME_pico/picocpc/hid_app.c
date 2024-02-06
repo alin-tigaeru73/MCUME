@@ -155,8 +155,8 @@ static void process_kbd_report(hid_keyboard_report_t const *report)
       }else
       {
         // not existed in previous report means the current key is pressed
-        bool const is_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
-        bool const is_ctrl  = report->modifier & (KEYBOARD_MODIFIER_LEFTCTRL  | KEYBOARD_MODIFIER_RIGHTCTRL);
+        const bool is_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
+        const bool is_ctrl  = report->modifier & (KEYBOARD_MODIFIER_LEFTCTRL  | KEYBOARD_MODIFIER_RIGHTCTRL);
         emu_ForwardKeycode(report->keycode[i], is_shift, is_ctrl);
         board_led_write(led_state);
         led_state = !led_state;

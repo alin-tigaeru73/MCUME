@@ -10,6 +10,12 @@
 class Bus;
 
 namespace KeyManager {
+    struct Key {
+        bool is_shifted;
+        bool is_ctrl;
+        uint8_t fkc;
+    };
+
     inline std::unordered_map<uint8_t , uint8_t> hidToFKC = {
         {0x52, 0x00}, // Key_CursorUp
         {0x4F, 0x01}, // Key_CursorRight
@@ -31,7 +37,8 @@ namespace KeyManager {
         {0x30, 0x13}, // Key_CloseBracket
         {0x5C, 0x14}, // Key_F4
         {0x31, 0x16}, // Key_BackSlash
-        {0x2A, 0x18}, // Key_Caret
+        // TODO what should I map to caret?
+//        {0x2A, 0x18}, // Key_Caret
         {0x2D, 0x19}, // Key_Hyphen
         {0x34, 0x1A}, // Key_At
         {0x13, 0x1B}, // Key_P
@@ -78,8 +85,7 @@ namespace KeyManager {
         {0x04, 0x45}, // Key_A
         {0x39, 0x46}, // Key_CapsLock
         {0x1D, 0x47}, // Key_Z
-        {0x2A, 0x4F}  // Key_Del
-        // TODO backspace?
+        {0x2A, 0x4F},  // Key_Del
     };
 
     class KeyManager {
@@ -91,8 +97,8 @@ namespace KeyManager {
             _lines.fill(255);
         }
 
-        static uint8_t decodeKey(uint16_t hidKey);
-        void setKeyPressed(uint8_t fkc);
+        static Key decodeKey(uint16_t hidKey);
+        void setKeyPressed(Key key);
         void setKeyLineReleased(uint8_t fkc);
         [[nodiscard]] uint8_t getLine(uint8_t line) const;
         [[nodiscard]] bool existsInMap(uint16_t hidKey) const;
