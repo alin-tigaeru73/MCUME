@@ -23,6 +23,7 @@ extern "C" {
 #include "pwmsnd.h"
 #endif
 
+u8* audioBuffer = nullptr;
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 int frameCount = 0;
@@ -48,7 +49,7 @@ void tuh_umount_cb(uint8_t dev_addr)
 bool repeating_timer_callback(struct repeating_timer *t) {
 
     uint16_t bClick = emu_ReadKeys();
-    emu_Input(bClick);
+    emu_Input(bClick)
     if (vbl) {
         vbl = false;
     } else {
@@ -66,12 +67,12 @@ static int skip=0;
 
 int main(void) {
 //    vreg_set_voltage(VREG_VOLTAGE_1_05);
-//    set_sys_clock_khz(125000, true);    
+    set_sys_clock_khz(125000, true);
 //    set_sys_clock_khz(150000, true);    
 //    set_sys_clock_khz(133000, true);    
 //    set_sys_clock_khz(200000, true);    
 //    set_sys_clock_khz(210000, true);    
-    set_sys_clock_khz(230000, true);    
+//    set_sys_clock_khz(230000, true);
 //    set_sys_clock_khz(225000, true);    
 //    set_sys_clock_khz(250000, true);
 
@@ -90,6 +91,7 @@ int main(void) {
 #endif
 #ifdef HAS_SND
     PWMSndInit();
+    audioBuffer = new u8;
 #endif
     emu_init();
     while (true) {
@@ -99,7 +101,7 @@ int main(void) {
             char * filename = menuSelection();
             if (action == ACTION_RUNTFT) {
               toggleMenu(false);
-              emu_Init(filename);
+              emu_Init(filename)
               emu_start();
               tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
               tft.startDMA(); 
@@ -109,7 +111,7 @@ int main(void) {
             tft.waitSync();
         }
         else {
-            emu_Step();
+            emu_Step()
         }
     }
 }
@@ -198,3 +200,15 @@ void * emu_LineBuffer(int line)
 {
     return (void*)tft.getLineBuffer(line);    
 }
+
+void emu_sndPlaySound(int chan, int volume, int freq)
+{
+    // TODO match sample rate to the frequency
+    if(freq == 0) return;
+    *audioBuffer = (u8) volume;
+    PlaySound(audioBuffer, freq, false);
+
+    if(!PlayingSound()) {
+    }
+}
+

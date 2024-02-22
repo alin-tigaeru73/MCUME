@@ -17,8 +17,8 @@ void cpc_Init() {
                             B16(Display::firmware_palette[hardware_colour].B),
                             hardware_colour);
     }
-//    bus->initialiseLowRom();
-//    bus->initialiseUpperRom();
+    bus->initialiseLowRom();
+    bus->initialiseUpperRom();
 }
 
 void cpc_Step() {

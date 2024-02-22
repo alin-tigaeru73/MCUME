@@ -97,11 +97,16 @@ uint8_t Bus::readPPI(const uint16_t port) const {
 }
 
 uint8_t Bus::readPSG(const uint8_t value) {
-    if(_ay->Latch == 14) {
-        _ay->KeyLine = value;
-        return RdKeyLine8910(_ay);
+//    if(_ay->Latch == 14) {
+//        _ay->KeyLine = value;
+//        return RdKeyLine8910(_ay);
+//    }
+//    return RdData8910(_ay);
+    if(_psg->getLatch() == 14) {
+        _psg->setKeyLine(value);
+        return _psg->readKeyLine();
     }
-    return RdData8910(_ay);
+    return _psg->readData();
 }
 
 void Bus::writePPI(const uint16_t port, const uint8_t value) const {
@@ -115,11 +120,12 @@ void Bus::writePPI(const uint16_t port, const uint8_t value) const {
 }
 
 void Bus::writePSG(const uint8_t value) const {
-    WrData8910(_ay, value);
+    _psg->write(value);
 }
 
 void Bus::selectPSGRegister(const uint8_t value) const {
-    WrCtrl8910(_ay, value);
+    _psg->writeCtrl(value);
+
 }
 
 void Bus::setKeyPressed(const uint16_t hidKey) const {
@@ -142,4 +148,8 @@ void Bus::initialiseLowRom() {
 
 void Bus::initialiseUpperRom() {
     _memory->initialiseUpperRom();
+}
+
+void Bus::psgExecute() {
+    _psg->step();
 }

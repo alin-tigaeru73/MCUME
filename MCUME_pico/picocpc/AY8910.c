@@ -316,7 +316,7 @@ void Sync8910(register AY8910 *D,register byte Sync)
   for(J=0,I=D->Changed;I&&(J<AY8910_CHANNELS);J++,I>>=1)
     if(I&1) {
 #if HAS_SND      
-      // emu_sndPlaySound(J+D->First, D->Volume[J], D->Freq[J]);
+       emu_sndPlaySound(J+D->First, D->Volume[J], D->Freq[J]);
 #endif      
       //Sound(J+D->First,D->Freq[J],D->Volume[J]);
     }

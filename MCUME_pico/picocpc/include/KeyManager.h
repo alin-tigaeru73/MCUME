@@ -11,8 +11,8 @@ class Bus;
 
 namespace KeyManager {
     struct Key {
-        bool is_shifted;
-        bool is_ctrl;
+        bool isShifted;
+        bool isCtrl;
         uint8_t fkc;
     };
 
@@ -101,7 +101,7 @@ namespace KeyManager {
         void setKeyPressed(Key key);
         void setKeyLineReleased(uint8_t fkc);
         [[nodiscard]] uint8_t getLine(uint8_t line) const;
-        [[nodiscard]] bool existsInMap(uint16_t hidKey) const;
+        [[nodiscard]] static bool existsInMap(uint16_t hidKey) ;
     };
 
 

@@ -15,10 +15,7 @@
 #include "KeyManager.h"
 #include "PPI.h"
 #include "BusCConnector.h"
-extern "C" {
-    #include "AY8910.h"
-}
-
+#include "PSG.h"
 
 class Bus {
 private:
@@ -29,26 +26,22 @@ private:
     std::unique_ptr<Display::Display> _display;
     std::unique_ptr<KeyManager::KeyManager> _keyManager;
     std::unique_ptr<PPI::PPI> _ppi;
-    AY8910* _ay;
+    std::unique_ptr<PSG> _psg;
     bool _vsyncWait{};
     bool _hsyncWait{};
 public:
-    Bus()
-      : _processor(std::make_unique<Processor>(this)),
-        _memory(std::make_unique<Memory>(this)),
-        _crtc(std::make_unique<CRTC>(this)),
-        _ga(std::make_unique<GateArray>(this)),
-        _display(std::make_unique<Display::Display>(this)),
-        _keyManager(std::make_unique<KeyManager::KeyManager>(this)),
-        _ppi(std::make_unique<PPI::PPI>(this)),
-        _ay(new AY8910()),
-        _vsyncWait(true),
-        _hsyncWait(true) {
+    Bus(): _processor(std::make_unique<Processor>(this)),
+           _memory(std::make_unique<Memory>(this)),
+           _crtc(std::make_unique<CRTC>(this)),
+           _ga(std::make_unique<GateArray>(this)),
+           _display(std::make_unique<Display::Display>(this)),
+           _keyManager(std::make_unique<KeyManager::KeyManager>(this)),
+           _ppi(std::make_unique<PPI::PPI>(this)),
+           _psg(std::make_unique<PSG>(this)),
+           _vsyncWait(true),
+           _hsyncWait(true) {
         // For the C connector.
         setBusInstance(this);
-    }
-    ~Bus() {
-        delete _ay;
     }
     [[nodiscard]] bool isLowRomEnabled() const;
     [[nodiscard]] bool isHighRomEnabled() const;
@@ -60,6 +53,7 @@ public:
     [[nodiscard]] bool isWithinDisplay() const;
     [[nodiscard]] uint8_t readPPI(uint16_t port) const;
     [[nodiscard]] uint8_t readPSG(uint8_t value);
+    [[nodiscard]] uint8_t getKeyLine(uint8_t line) const;
     void step();
     void writeMemory(uint16_t addr, uint8_t value) const;
     void writeGA(uint8_t value) const;
@@ -75,7 +69,8 @@ public:
     void selectPSGRegister(uint8_t value) const;
     void setKeyPressed(uint16_t hidKey) const;
     void setKeyLineReleased(uint8_t fkc);
-    [[nodiscard]] uint8_t getKeyLine(uint8_t line) const;
+
+    void psgExecute();
 };
 
 #undef EXTERNC

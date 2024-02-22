@@ -11,12 +11,14 @@ class Bus;
 
 class Processor {
 private:
+    uint8_t _interruptCounter{};
     uint64_t _pins{};
     z80_t _cpu{};
     Bus* _bus;
 public:
     explicit Processor(Bus* bus)
-        : _pins(z80_init(&_cpu)),
+        : _interruptCounter(0),
+          _pins(z80_init(&_cpu)),
           _bus(bus) {};
     [[nodiscard]] uint8_t readZ80(uint16_t addr) const;
     void writeZ80(uint16_t addr, uint8_t value) const;
