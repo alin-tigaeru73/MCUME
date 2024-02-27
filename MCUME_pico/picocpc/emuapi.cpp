@@ -35,7 +35,6 @@ extern TFT_T_DMA tft;
 
 #ifdef HAS_SND
 #include "include.h"
-#include "pwmsnd.h"
 #endif
 
 #define MAX_FILENAME_PATH   64

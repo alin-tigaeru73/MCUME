@@ -1,6 +1,10 @@
 #ifndef EMUAPI_H
 #define EMUAPI_H
 
+#ifndef PICO_H_
+#include "pico.h"
+#endif
+
 #include "platform_config.h"
 
 #define EXTRA_HEAP  0x10
@@ -94,7 +98,7 @@ extern void emu_KeyboardOnUp(int keymodifer, int key);
 extern void emu_KeyboardOnDown(int keymodifer, int key);
 extern void emu_ForwardKeycode(uint8_t key, bool isShift, bool isCtrl);
 
-extern void emu_sndPlaySound(int chan, int volume, int freq);
+extern void emu_sndPlaySound(int chan, int vol, int freq);
 extern void emu_sndPlayBuzz(int size, int val);
 extern void emu_sndInit();
 extern void emu_resetus(void);

@@ -78,7 +78,7 @@ void Reset8910(register AY8910 *D,int ClockHz,int First)
   {
     D->Freq[J]=D->Volume[J]=0;
 #if HAS_SND    
-    emu_sndPlaySound(J+First, 0, 0);
+      emu_sndPlaySound(J+D->First, 0, 0);
 #endif    
     //Sound(J+First,0,0);
   }
@@ -315,9 +315,9 @@ void Sync8910(register AY8910 *D,register byte Sync)
 
   for(J=0,I=D->Changed;I&&(J<AY8910_CHANNELS);J++,I>>=1)
     if(I&1) {
-#if HAS_SND      
+#if HAS_SND
        emu_sndPlaySound(J+D->First, D->Volume[J], D->Freq[J]);
-#endif      
+#endif
       //Sound(J+D->First,D->Freq[J],D->Volume[J]);
     }
 

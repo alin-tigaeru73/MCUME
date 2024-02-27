@@ -125,7 +125,6 @@ void Bus::writePSG(const uint8_t value) const {
 
 void Bus::selectPSGRegister(const uint8_t value) const {
     _psg->writeCtrl(value);
-
 }
 
 void Bus::setKeyPressed(const uint16_t hidKey) const {

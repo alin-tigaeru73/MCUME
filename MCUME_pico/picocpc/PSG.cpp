@@ -25,6 +25,7 @@ void PSG::writeCtrl(uint8_t value) {
 }
 
 void PSG::step() {
+    // this is called every 10ms (every 3 interrupt requests)
     Loop8910(_ay, 10);
 }
 

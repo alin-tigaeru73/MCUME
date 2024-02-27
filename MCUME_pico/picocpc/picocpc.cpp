@@ -18,15 +18,8 @@ extern "C" {
 #include "tft_t_dma.h"
 #endif
 
-#ifdef HAS_SND
-#include "include.h"
-#include "pwmsnd.h"
-#endif
-
-u8* audioBuffer = nullptr;
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
-int frameCount = 0;
 
 extern "C" void hid_app_task(void);
 
@@ -46,7 +39,9 @@ void tuh_umount_cb(uint8_t dev_addr)
     printf("A device with address %d is unmounted \r\n", dev_addr);
 }
 
+
 bool repeating_timer_callback(struct repeating_timer *t) {
+    // executes every 10ms
 
     uint16_t bClick = emu_ReadKeys();
     emu_Input(bClick)
@@ -81,7 +76,6 @@ int main(void) {
     stdio_init_all();
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-    sleep_ms(2000);
     tusb_init();
     hid_app_task();
 #ifdef USE_VGA    
@@ -90,9 +84,9 @@ int main(void) {
     tft.begin();
 #endif
 #ifdef HAS_SND
-    PWMSndInit();
-    audioBuffer = new u8;
+
 #endif
+    sleep_ms(2000);
     emu_init();
     while (true) {
         if (menuActive()) {
@@ -106,7 +100,7 @@ int main(void) {
               tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
               tft.startDMA(); 
               struct repeating_timer timer{};
-              add_repeating_timer_ms(5, repeating_timer_callback, nullptr, &timer);
+              add_repeating_timer_ms(10, repeating_timer_callback, nullptr, &timer);
             }
             tft.waitSync();
         }
@@ -201,14 +195,21 @@ void * emu_LineBuffer(int line)
     return (void*)tft.getLineBuffer(line);    
 }
 
+#ifdef HAS_SND
+#include "AudioPlaySystem.h"
+AudioPlaySystem* mymixer = new AudioPlaySystem();
+void emu_sndInit() {
+    tft.begin_audio(256, AudioPlaySystem::snd_Mixer);
+    mymixer->start();
+}
+
 void emu_sndPlaySound(int chan, int volume, int freq)
 {
-    // TODO match sample rate to the frequency
-    if(freq == 0) return;
-    *audioBuffer = (u8) volume;
-    PlaySound(audioBuffer, freq, false);
-
-    if(!PlayingSound()) {
+    if (chan < 6) {
+        mymixer->sound(chan, freq, volume);
     }
 }
+
+#endif
+
 

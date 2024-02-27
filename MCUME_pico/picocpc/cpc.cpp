@@ -19,6 +19,9 @@ void cpc_Init() {
     }
     bus->initialiseLowRom();
     bus->initialiseUpperRom();
+#ifdef HAS_SND
+    emu_sndInit();
+#endif
 }
 
 void cpc_Step() {
