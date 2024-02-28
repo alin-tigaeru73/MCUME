@@ -4,13 +4,17 @@
 extern "C" {
   #include "iopins.h"  
   #include "emuapi.h"
+#ifdef USB_KBD
   #include "tusb.h"
+#endif
 }
 #include "keyboard_osd.h"
 
 #include "cpc.h"
 #include <cstdio>
+#ifdef USB_KBD
 #include <bsp/board.h>
+#endif
 
 #ifdef USE_VGA
 #include "vga_t_dma.h"
@@ -18,9 +22,15 @@ extern "C" {
 #include "tft_t_dma.h"
 #endif
 
+#ifdef HAS_SND
+#include "AudioPlaySystem.h"
+AudioPlaySystem* mymixer;
+#endif
+
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
 
+#ifdef USB_KBD
 extern "C" void hid_app_task(void);
 
 //--------------------------------------------------------------------+
@@ -38,7 +48,7 @@ void tuh_umount_cb(uint8_t dev_addr)
     // application tear-down
     printf("A device with address %d is unmounted \r\n", dev_addr);
 }
-
+#endif
 
 bool repeating_timer_callback(struct repeating_timer *t) {
     // executes every 10ms
@@ -70,21 +80,23 @@ int main(void) {
 //    set_sys_clock_khz(230000, true);
 //    set_sys_clock_khz(225000, true);    
 //    set_sys_clock_khz(250000, true);
-
-    board_init();
-    tuh_init(BOARD_TUH_RHPORT);
     stdio_init_all();
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+#ifdef USB_KBD
+    board_init();
+    tuh_init(BOARD_TUH_RHPORT);
+
     tusb_init();
     hid_app_task();
+#endif
 #ifdef USE_VGA    
     tft.begin(VGA_MODE_320x240);
 #else
     tft.begin();
 #endif
 #ifdef HAS_SND
-
+    mymixer = new AudioPlaySystem();
 #endif
     sleep_ms(2000);
     emu_init();
@@ -100,7 +112,7 @@ int main(void) {
               tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
               tft.startDMA(); 
               struct repeating_timer timer{};
-              add_repeating_timer_ms(10, repeating_timer_callback, nullptr, &timer);
+              add_repeating_timer_ms(5, repeating_timer_callback, nullptr, &timer);
             }
             tft.waitSync();
         }
@@ -196,8 +208,6 @@ void * emu_LineBuffer(int line)
 }
 
 #ifdef HAS_SND
-#include "AudioPlaySystem.h"
-AudioPlaySystem* mymixer = new AudioPlaySystem();
 void emu_sndInit() {
     tft.begin_audio(256, AudioPlaySystem::snd_Mixer);
     mymixer->start();
@@ -209,7 +219,6 @@ void emu_sndPlaySound(int chan, int volume, int freq)
         mymixer->sound(chan, freq, volume);
     }
 }
-
 #endif
 
 

@@ -11,7 +11,9 @@
 extern "C" {
   #include "emuapi.h"
   #include "iopins.h"
+#ifdef USB_KBD
   #include "tusb.h"
+#endif
 }
 
 static bool emu_writeConfig(void);
