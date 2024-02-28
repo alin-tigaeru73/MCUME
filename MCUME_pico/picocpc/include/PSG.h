@@ -8,7 +8,10 @@
 
 extern "C" {
 #include "AY8910.h"
+#include "emuapi.h"
 }
+
+#define AY_CLOCK 1000000
 
 class Bus;
 
@@ -20,7 +23,7 @@ public:
     explicit PSG(Bus *bus)
             : _bus(bus),
               _ay(new AY8910()) {
-        Reset8910(_ay, 1000000, 0);
+        Reset8910(_ay, AY_CLOCK, 0);
     }
 
     ~PSG() {

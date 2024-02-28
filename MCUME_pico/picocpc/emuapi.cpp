@@ -11,7 +11,9 @@
 extern "C" {
   #include "emuapi.h"
   #include "iopins.h"
+#ifdef USB_KBD
   #include "tusb.h"
+#endif
 }
 
 static bool emu_writeConfig(void);
@@ -35,7 +37,6 @@ extern TFT_T_DMA tft;
 
 #ifdef HAS_SND
 #include "include.h"
-#include "pwmsnd.h"
 #endif
 
 #define MAX_FILENAME_PATH   64

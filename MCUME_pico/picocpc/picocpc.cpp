@@ -4,13 +4,17 @@
 extern "C" {
   #include "iopins.h"  
   #include "emuapi.h"
+#ifdef USB_KBD
   #include "tusb.h"
+#endif
 }
 #include "keyboard_osd.h"
 
 #include "cpc.h"
 #include <cstdio>
+#ifdef USB_KBD
 #include <bsp/board.h>
+#endif
 
 #ifdef USE_VGA
 #include "vga_t_dma.h"
@@ -19,15 +23,14 @@ extern "C" {
 #endif
 
 #ifdef HAS_SND
-#include "include.h"
-#include "pwmsnd.h"
+#include "AudioPlaySystem.h"
+AudioPlaySystem* mymixer;
 #endif
 
-u8* audioBuffer = nullptr;
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
-int frameCount = 0;
 
+#ifdef USB_KBD
 extern "C" void hid_app_task(void);
 
 //--------------------------------------------------------------------+
@@ -45,8 +48,10 @@ void tuh_umount_cb(uint8_t dev_addr)
     // application tear-down
     printf("A device with address %d is unmounted \r\n", dev_addr);
 }
+#endif
 
 bool repeating_timer_callback(struct repeating_timer *t) {
+    // executes every 10ms
 
     uint16_t bClick = emu_ReadKeys();
     emu_Input(bClick)
@@ -75,24 +80,25 @@ int main(void) {
 //    set_sys_clock_khz(230000, true);
 //    set_sys_clock_khz(225000, true);    
 //    set_sys_clock_khz(250000, true);
-
-    board_init();
-    tuh_init(BOARD_TUH_RHPORT);
     stdio_init_all();
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-    sleep_ms(2000);
+#ifdef USB_KBD
+    board_init();
+    tuh_init(BOARD_TUH_RHPORT);
+
     tusb_init();
     hid_app_task();
+#endif
 #ifdef USE_VGA    
     tft.begin(VGA_MODE_320x240);
 #else
     tft.begin();
 #endif
 #ifdef HAS_SND
-    PWMSndInit();
-    audioBuffer = new u8;
+    mymixer = new AudioPlaySystem();
 #endif
+    sleep_ms(2000);
     emu_init();
     while (true) {
         if (menuActive()) {
@@ -201,14 +207,18 @@ void * emu_LineBuffer(int line)
     return (void*)tft.getLineBuffer(line);    
 }
 
+#ifdef HAS_SND
+void emu_sndInit() {
+    tft.begin_audio(256, AudioPlaySystem::snd_Mixer);
+    mymixer->start();
+}
+
 void emu_sndPlaySound(int chan, int volume, int freq)
 {
-    // TODO match sample rate to the frequency
-    if(freq == 0) return;
-    *audioBuffer = (u8) volume;
-    PlaySound(audioBuffer, freq, false);
-
-    if(!PlayingSound()) {
+    if (chan < 6) {
+        mymixer->sound(chan, freq, volume);
     }
 }
+#endif
+
 

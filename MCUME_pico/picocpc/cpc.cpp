@@ -8,9 +8,10 @@ extern "C" {
 #include "platform_config.h"
 }
 
-auto bus = std::make_unique<Bus>();
+std::unique_ptr<Bus> bus;
 
 void cpc_Init() {
+    bus = std::make_unique<Bus>();
     for(const auto& hardware_colour : Display::hardware_colours) {
         emu_SetPaletteEntry(R16(Display::firmware_palette[hardware_colour].R),
                             G16(Display::firmware_palette[hardware_colour].G),
@@ -19,6 +20,9 @@ void cpc_Init() {
     }
     bus->initialiseLowRom();
     bus->initialiseUpperRom();
+#ifdef HAS_SND
+    emu_sndInit();
+#endif
 }
 
 void cpc_Step() {

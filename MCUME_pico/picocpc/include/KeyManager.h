@@ -36,7 +36,7 @@ namespace KeyManager {
         {0x28, 0x12}, // Key_Return
         {0x30, 0x13}, // Key_CloseBracket
         {0x5C, 0x14}, // Key_F4
-        {0x31, 0x16}, // Key_BackSlash
+        {0x31, 0x16}, // Key_Backspace
         // TODO what should I map to caret?
 //        {0x2A, 0x18}, // Key_Caret
         {0x2D, 0x19}, // Key_Hyphen
