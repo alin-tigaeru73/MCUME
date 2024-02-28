@@ -66,8 +66,24 @@ void Processor::clearWait() {
     _pins = _pins & ~Z80_WAIT;
 }
 
+// For the USB keyboard.
+#ifdef USB_KBD
+extern "C" {
+#include "tusb.h"
+}
+#endif
 void Processor::requestInterrupt() {
     _pins = _pins | Z80_INT;
+
+    // Gets a key from the USB keyboard, doing this here instead of the main emulation loop for performance.
+#ifdef USB_KBD
+    tuh_task();
+#endif
+    // Interrupts are at 1/300 of a second, which is 0.3 interrupts per millisecond.
+    // So every 3 interrupts I can execute LoopZ80 with 10ms passed to it.
+    if(_interruptCounter == 0) _bus->psgExecute();
+
+    _interruptCounter = _interruptCounter++ % 3;
 }
 
 void Processor::acknowledgeInterrupt() {

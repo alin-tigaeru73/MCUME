@@ -4,23 +4,33 @@
 extern "C" {
   #include "iopins.h"  
   #include "emuapi.h"
+#ifdef USB_KBD
   #include "tusb.h"
+#endif
 }
 #include "keyboard_osd.h"
 
 #include "cpc.h"
 #include <cstdio>
+#ifdef USB_KBD
 #include <bsp/board.h>
+#endif
 
 #ifdef USE_VGA
 #include "vga_t_dma.h"
 #else
 #include "tft_t_dma.h"
 #endif
+
+#ifdef HAS_SND
+#include "AudioPlaySystem.h"
+AudioPlaySystem* mymixer;
+#endif
+
 volatile bool vbl=true;
 const uint LED_PIN = PICO_DEFAULT_LED_PIN;
-int frameCount = 0;
 
+#ifdef USB_KBD
 extern "C" void hid_app_task(void);
 
 //--------------------------------------------------------------------+
@@ -38,11 +48,13 @@ void tuh_umount_cb(uint8_t dev_addr)
     // application tear-down
     printf("A device with address %d is unmounted \r\n", dev_addr);
 }
+#endif
 
 bool repeating_timer_callback(struct repeating_timer *t) {
+    // executes every 10ms
 
     uint16_t bClick = emu_ReadKeys();
-    emu_Input(bClick);
+    emu_Input(bClick)
     if (vbl) {
         vbl = false;
     } else {
@@ -60,43 +72,34 @@ static int skip=0;
 
 int main(void) {
 //    vreg_set_voltage(VREG_VOLTAGE_1_05);
-//    set_sys_clock_khz(125000, true);    
+    set_sys_clock_khz(125000, true);
 //    set_sys_clock_khz(150000, true);    
 //    set_sys_clock_khz(133000, true);    
 //    set_sys_clock_khz(200000, true);    
 //    set_sys_clock_khz(210000, true);    
-    set_sys_clock_khz(230000, true);    
+//    set_sys_clock_khz(230000, true);
 //    set_sys_clock_khz(225000, true);    
 //    set_sys_clock_khz(250000, true);
-
-    board_init();
-//
-//    // init host stack on configured roothub port
-    tuh_init(BOARD_TUH_RHPORT);
-
     stdio_init_all();
-
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
-
-    //flash 2 times 5 seconds gap, allows stdio_init_all to finish
-//    board_led_on();
-//    sleep_ms(1000);
-//    board_led_off();
-    sleep_ms(3000);
-//    board_led_on();
-//    sleep_ms(1000);
-//    board_led_off();
+#ifdef USB_KBD
+    board_init();
+    tuh_init(BOARD_TUH_RHPORT);
 
     tusb_init();
+    hid_app_task();
+#endif
 #ifdef USE_VGA    
     tft.begin(VGA_MODE_320x240);
 #else
     tft.begin();
 #endif
-
+#ifdef HAS_SND
+    mymixer = new AudioPlaySystem();
+#endif
+    sleep_ms(2000);
     emu_init();
-
     while (true) {
         if (menuActive()) {
             uint16_t bClick = emu_DebounceLocalKeys();
@@ -104,7 +107,7 @@ int main(void) {
             char * filename = menuSelection();
             if (action == ACTION_RUNTFT) {
               toggleMenu(false);
-              emu_Init(filename);
+              emu_Init(filename)
               emu_start();
               tft.fillScreenNoDma( RGBVAL16(0x00,0x00,0x00) );
               tft.startDMA(); 
@@ -114,10 +117,7 @@ int main(void) {
             tft.waitSync();
         }
         else {
-            // For the USB keyboard
-            tuh_task();
-            hid_app_task();
-            emu_Step();
+            emu_Step()
         }
     }
 }
@@ -206,3 +206,19 @@ void * emu_LineBuffer(int line)
 {
     return (void*)tft.getLineBuffer(line);    
 }
+
+#ifdef HAS_SND
+void emu_sndInit() {
+    tft.begin_audio(256, AudioPlaySystem::snd_Mixer);
+    mymixer->start();
+}
+
+void emu_sndPlaySound(int chan, int volume, int freq)
+{
+    if (chan < 6) {
+        mymixer->sound(chan, freq, volume);
+    }
+}
+#endif
+
+

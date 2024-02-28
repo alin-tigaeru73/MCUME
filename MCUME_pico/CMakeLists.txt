@@ -61,6 +61,10 @@ set(PICOCPC_SOURCES
 		picocpc/include/BusCConnector.h
         picocpc/ROMLoader.cpp
 		picocpc/include/ROMLoader.h
+		picocpc/PSG.cpp
+		picocpc/include/PSG.h
+		picocpc/AudioPlaySystem.cpp
+		picocpc/include/AudioPlaySystem.h
 )
 
 set(PICOSND_SOURCES
