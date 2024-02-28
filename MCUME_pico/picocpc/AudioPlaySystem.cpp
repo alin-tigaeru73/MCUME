@@ -128,7 +128,6 @@ void AudioPlaySystem::snd_Mixer(short *  stream, int len )
       chan[3].spos += chan[3].sinc;
       chan[4].spos += chan[4].sinc;
       chan[5].spos += chan[5].sinc;
-      printf("s %hd\n", *stream);
     }
 #endif         
   }
@@ -165,7 +164,6 @@ bool AudioPlaySystem::isPlaying(void)
 void AudioPlaySystem::sound(int C, int F, int V) {
 #ifndef CUSTOM_SND
   if (C < 6) {
-      printf("s C: %d F: %d V: %d\n", C, F, V);
     chan[C].vol = V;
     chan[C].sinc = F>>1;
   }
