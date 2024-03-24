@@ -8,6 +8,10 @@
 #include "pico/stdlib.h"
 #endif
 
+extern "C" {
+#include "emuapi.h"
+};
+
 class Bus;
 
 class GateArray {
@@ -24,9 +28,10 @@ private:
     bool _waitSignal{};
     bool _currentHSync{};
     bool _currentVSync{};
-    uint8_t _microsecondCounter{};
+    int _microsecondCounter{};
     std::array<uint8_t, 8>* _pixelBuffer{};
 public:
+
     explicit GateArray(Bus* bus)
             : _bus(bus),
               _penSelected(0),
@@ -39,14 +44,14 @@ public:
               _waitSignal(false),
               _currentHSync(false),
               _currentVSync(false),
-              _microsecondCounter(0) {
-
+              _microsecondCounter(0)
+              {
         _penColours = new uint8_t[_penNumber];
-        _pixelBuffer = new std::array<uint8_t, 8>;
+        _pixelBuffer = new std::array<uint8_t, 8>[320];
     };
     ~GateArray() = default;
     bool updateInterrupts();
-    void generatePixelData() const;
+    void generatePixelData();
     bool step();
     void selectPen(uint8_t value);
     void selectPenColour(uint8_t value) const;

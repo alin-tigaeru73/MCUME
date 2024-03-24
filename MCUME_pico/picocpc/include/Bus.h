@@ -27,8 +27,6 @@ private:
     std::unique_ptr<KeyManager::KeyManager> _keyManager;
     std::unique_ptr<PPI::PPI> _ppi;
     std::unique_ptr<PSG> _psg;
-    bool _vsyncWait{};
-    bool _hsyncWait{};
 public:
     Bus(): _processor(std::make_unique<Processor>(this)),
            _memory(std::make_unique<Memory>(this)),
@@ -37,9 +35,7 @@ public:
            _display(std::make_unique<Display::Display>(this)),
            _keyManager(std::make_unique<KeyManager::KeyManager>(this)),
            _ppi(std::make_unique<PPI::PPI>(this)),
-           _psg(std::make_unique<PSG>(this)),
-           _vsyncWait(true),
-           _hsyncWait(true) {
+           _psg(std::make_unique<PSG>(this)) {
         // For the C connector.
         setBusInstance(this);
     }
@@ -59,9 +55,7 @@ public:
     void writeGA(uint8_t value) const;
     void clearInterruptCounterGA() const;
     void writeCRTC(uint16_t port, uint8_t value) const;
-    void setVSyncWait(bool vsync);
-    void setHSyncWait(bool hsync);
-    void draw(uint8_t pixel) const;
+    void draw(uint8_t& pixel) const;
     void initialiseLowRom();
     void initialiseUpperRom();
     void writePPI(uint16_t port, uint8_t value) const;
@@ -71,6 +65,9 @@ public:
     void setKeyLineReleased(uint8_t fkc);
 
     void psgExecute();
+
+    void drawVSync();
+    void drawScanline();
 };
 
 #undef EXTERNC

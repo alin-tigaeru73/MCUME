@@ -50,10 +50,20 @@ void tuh_umount_cb(uint8_t dev_addr)
 }
 #endif
 
+static int call_count = 0;
+static int frame_count = 0;
+static int scanline_count = 0;
 bool repeating_timer_callback(struct repeating_timer *t) {
-    // executes every 10ms
-
+    call_count++;
     uint16_t bClick = emu_ReadKeys();
+    if(call_count == 200) {
+        // since we're called every 5ms, this is done every second
+        printf("FPS: %d\n", frame_count);
+        printf("Scanlines: %d\n", scanline_count);
+        scanline_count = 0;
+        frame_count = 0;
+        call_count = 0;
+    }
     emu_Input(bClick)
     if (vbl) {
         vbl = false;
@@ -136,12 +146,13 @@ void emu_SetPaletteEntry(unsigned char r, unsigned char g, unsigned char b, int 
 
 void emu_DrawVsync(void)
 {
-//    frameCount = (frameCount + 1) % 50;
-    skip += 1;
-    skip &= VID_FRAME_SKIP;
-    volatile bool vb=vbl; 
-    while (vbl==vb) {};
-#ifdef USE_VGA   
+    frame_count++;
+//    skip += 1;
+//    skip &= VID_FRAME_SKIP;
+//    volatile bool vb=vbl;
+//    while (vbl==vb) {};
+#ifdef USE_VGA
+    tft.waitSync();
 //    tft.waitSync();
 #else                      
 //    volatile bool vb=vbl; 
@@ -173,7 +184,8 @@ void emu_DrawLine8(unsigned char * VBuf, int width, int height, int line)
 void emu_DrawLine16(unsigned short * VBuf, int width, int height, int line) 
 {
     if (skip == 0) {
-#ifdef USE_VGA        
+#ifdef USE_VGA
+        scanline_count++;
         tft.writeLine16(width,height,line, VBuf);
 #endif        
     }

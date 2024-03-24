@@ -9,9 +9,14 @@ void Bus::writeMemory(const uint16_t addr, const uint8_t value) const {
 }
 
 void Bus::step() {
-    const auto interruptAcknowledged = _processor->step();
+    bool interruptGenerated = _ga->step();
     _crtc->step();
-    const auto interruptGenerated = _ga->step();
+    bool interruptAcknowledged;
+
+    for(int i = 0; i < 4; i++) {
+        interruptAcknowledged = _processor->step();
+    }
+
     if(_ga->getWaitSignal()) {
         _processor->assertWait();
     }
@@ -26,15 +31,6 @@ void Bus::step() {
         clearInterruptCounterGA();
     }
 
-    if(!_hsyncWait) {
-        _display->drawScanLine();
-        setHSyncWait(true);
-    }
-
-    if(!_vsyncWait) {
-        _display->drawVSync();
-        setVSyncWait(true);
-    }
 }
 
 void Bus::writeGA(const uint8_t value) const {
@@ -77,15 +73,7 @@ bool Bus::isHighRomEnabled() const {
     return _ga->getHighRomStatus();
 }
 
-void Bus::setVSyncWait(const bool vsync) {
-    _vsyncWait = vsync;
-}
-
-void Bus::setHSyncWait(const bool hsync) {
-    _hsyncWait = hsync;
-}
-
-void Bus::draw(const uint8_t pixel) const {
+void Bus::draw(uint8_t& pixel) const {
     _display->populateBitstream(pixel);
 }
 
@@ -97,11 +85,6 @@ uint8_t Bus::readPPI(const uint16_t port) const {
 }
 
 uint8_t Bus::readPSG(const uint8_t value) {
-//    if(_ay->Latch == 14) {
-//        _ay->KeyLine = value;
-//        return RdKeyLine8910(_ay);
-//    }
-//    return RdData8910(_ay);
     if(_psg->getLatch() == 14) {
         _psg->setKeyLine(value);
         return _psg->readKeyLine();
@@ -151,4 +134,13 @@ void Bus::initialiseUpperRom() {
 
 void Bus::psgExecute() {
     _psg->step();
+}
+
+void Bus::drawVSync() {
+    _display->drawVSync();
+}
+
+void Bus::drawScanline() {
+    _display->drawScanLine();
+
 }

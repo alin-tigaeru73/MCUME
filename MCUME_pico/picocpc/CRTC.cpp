@@ -9,10 +9,12 @@ bool CRTC::isHSyncActive() const {
 }
 
 bool CRTC::isVSyncActive() const {
-    const uint8_t charHeight = _registers[9] + 1;
-    const auto charLinesCounted = _charLineCounter - _registers[7];
-    return charHeight * charLinesCounted >= 0 &&
-           charHeight * charLinesCounted <= 16;
+//    const uint8_t charHeight = _registers[9] + 1;
+//    const auto charLinesCounted = _charLineCounter - _registers[7];
+//    return charHeight * charLinesCounted >= 0 &&
+//           charHeight * charLinesCounted <= 16;
+      return (_registers[9] + 1) * (_charLineCounter - _registers[7]) >= 0 &&
+             (_registers[9] + 1) * (_charLineCounter - _registers[7]) <= 16;
 }
 
 bool CRTC::isWithinDisplay() const {
@@ -34,34 +36,30 @@ uint16_t CRTC::generateAddress() const {
 }
 
 void CRTC::step() {
-    if(_microsecondCounter == 3) {
-        ++_horizontalCounter;
+    ++_horizontalCounter;
 
-        if(_horizontalCounter > _registers[0]) {
-            // horizontal counter is equal to the Horizontal Total Register.
-            _horizontalCounter = 0;
-            ++_scanlineCounter;
-        }
-
-        if(_scanlineCounter > _registers[9]) {
-            // The counter for Maximum Raster Address is equal to it.
-            // The height of a character is 8 rasters, so when we reach 8 rasters we increment the char line count.
-            _scanlineCounter = 0;
-            ++_charLineCounter;
-        }
-
-        if(_charLineCounter > _registers[4]) {
-            // The vertical counter reaches the Vertical Total register.
-            _charLineCounter = 0;
-        }
-
-        if(_charLineCounter == 0 && _horizontalCounter == 0)
-        {
-            _memoryStartAddress = (static_cast<uint16_t>(_registers[12]) << 8) | _registers[13];
-        }
-
+    if(_horizontalCounter > _registers[0]) {
+        // horizontal counter is equal to the Horizontal Total Register.
+        _horizontalCounter = 0;
+        ++_scanlineCounter;
     }
-    _microsecondCounter = (_microsecondCounter + 1) % 4;
+
+    if(_scanlineCounter > _registers[9]) {
+        // The counter for Maximum Raster Address is equal to it.
+        // The height of a character is 8 rasters, so when we reach 8 rasters we increment the char line count.
+        _scanlineCounter = 0;
+        ++_charLineCounter;
+    }
+
+    if(_charLineCounter > _registers[4]) {
+        // The vertical counter reaches the Vertical Total register.
+        _charLineCounter = 0;
+    }
+
+    if(_charLineCounter == 0 && _horizontalCounter == 0)
+    {
+        _memoryStartAddress = (static_cast<uint16_t>(_registers[12]) << 8) | _registers[13];
+    }
 }
 
 void CRTC::write(const uint16_t addr, const uint8_t value) {

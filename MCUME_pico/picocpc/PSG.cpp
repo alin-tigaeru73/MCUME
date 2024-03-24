@@ -25,7 +25,7 @@ void PSG::writeCtrl(uint8_t value) {
 }
 
 void PSG::step() {
-    // this is called every 10ms (every 3 interrupt requests)
-    Loop8910(_ay, 10);
+    // this is called every 1ms (every 20 sound interrupt requests)
+    Loop8910(_ay, 1);
 }
 

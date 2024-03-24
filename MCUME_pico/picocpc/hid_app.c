@@ -27,6 +27,7 @@
 #include "tusb.h"
 #include "emuapi.h"
 
+#ifdef USB_KBD
 //--------------------------------------------------------------------+
 // MACRO TYPEDEF CONSTANT ENUM DECLARATION
 //--------------------------------------------------------------------+
@@ -295,3 +296,5 @@ static void process_generic_report(uint8_t dev_addr, uint8_t instance, uint8_t c
     }
   }
 }
+
+#endif // USB_KBD

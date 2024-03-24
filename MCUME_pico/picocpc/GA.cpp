@@ -1,11 +1,9 @@
-#include <vector>
-
 #include "GA.h"
 #include "Bus.h"
 
 bool GateArray::updateInterrupts() {
     auto interruptGenerated = false;
-    if(_currentHSync && !_bus->isHSyncActive()) {
+    if(!_currentHSync && _bus->isHSyncActive()) {
         // falling edge of CRTC hsync signal.
         _interruptCounter++;
         _delayVSyncCounter++;
@@ -32,22 +30,19 @@ bool GateArray::updateInterrupts() {
     return interruptGenerated;
 }
 
-void GateArray::generatePixelData() const {
-    if(_bus->isHSyncActive() && !_currentHSync) {
-        _bus->setHSyncWait(false);
-    }
-
-    if(_bus->isVSyncActive() && !_currentVSync) {
-        _bus->setVSyncWait(false);
-    }
-
-    if(!_bus->isWithinDisplay()) {
+void GateArray::generatePixelData() {
+    if(!_bus->isHSyncActive() && _currentHSync) {
+        _bus->drawScanline();
         return;
     }
 
-    for(int i = 0; i < 2; ++i) {
-        const uint16_t address = _bus->getVideoAddress() + i;
-        const uint8_t encodedByte = _bus->readMemory(address);
+    if(!_bus->isVSyncActive() && _currentVSync) {
+        _bus->drawVSync();
+        return;
+    }
+
+    for(int i = 0; i < 2 && _bus->isWithinDisplay(); ++i) {
+        const uint8_t encodedByte = _bus->readMemory(_bus->getVideoAddress() + i);
         switch(_screenMode) {
             case 0:
                 _pixelBuffer->at(0) = ((encodedByte & 0x80) >> 7 |
@@ -60,8 +55,10 @@ void GateArray::generatePixelData() const {
                                     (encodedByte & 0x01) << 3);
 
                 for(int j = 0; j < 2; ++j) {
+
                     _bus->draw(_penColours[_pixelBuffer->at(j)]);
                 }
+
                 break;
             case 1:
                 _pixelBuffer->at(0) = ((encodedByte & 0x80) >> 7 |
@@ -72,15 +69,18 @@ void GateArray::generatePixelData() const {
                                  (encodedByte & 0x20) >> 5);
                 _pixelBuffer->at(3) = ((encodedByte & 0x10) >> 4 |
                                  (encodedByte & 0x01) << 1);
+
                 for(int j = 0; j < 4; ++j) {
                     _bus->draw(_penColours[_pixelBuffer->at(j)]);
                 }
+
                 break;
             case 2:
                 for (uint8_t color = 0; color < 8; ++color) {
                     _pixelBuffer->at(color) = (encodedByte >> (7 - color)) & 1;
                     _bus->draw(_penColours[_pixelBuffer->at(color)]);
                 }
+
                 break;
         }
     }
@@ -88,18 +88,12 @@ void GateArray::generatePixelData() const {
 
 bool GateArray::step() {
     _waitSignal = _microsecondCounter == 1;
-
-    if(_microsecondCounter == 3) {
-        const auto interruptGenerated = updateInterrupts();
-        generatePixelData();
-
-        _currentHSync = _bus->isHSyncActive();
-        _currentVSync = _bus->isVSyncActive();
-        _microsecondCounter = (_microsecondCounter + 1) % 4;
-        return interruptGenerated;
-    }
+    const auto interruptGenerated = updateInterrupts();
+    generatePixelData();
+    _currentHSync = _bus->isHSyncActive();
+    _currentVSync = _bus->isVSyncActive();
     _microsecondCounter = (_microsecondCounter + 1) % 4;
-    return false;
+    return interruptGenerated;
 }
 
 void GateArray::selectPen(const uint8_t value) {
