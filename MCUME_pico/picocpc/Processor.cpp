@@ -81,11 +81,15 @@ void Processor::requestInterrupt() {
 #endif
     // Interrupts are at 1/300 of a second, which is 0.3 interrupts per millisecond.
 
-    // sound interrupts are 50 times per second, which is 0.05 interrupts per millisecond.
-    // every 20 interrupts - loop with 1ms
-    if(_interruptCounter == 19) _bus->psgExecute();
+//    // sound interrupts are 50 times per second, which is 0.05 interrupts per millisecond.
+//    // every 20 interrupts - loop with 1ms
+//    if(_interruptCounter == 19) _bus->psgExecute();
 
-    _interruptCounter = _interruptCounter++ % 20;
+    // sound interrupts are 100 times per second, which is 0.1 interrupts per millisecond.
+    // every 10 interrupts - loop with 1ms
+    if(_interruptCounter == 9) _bus->psgExecute();
+
+    _interruptCounter = _interruptCounter++ % 10;
 }
 
 void Processor::acknowledgeInterrupt() {
